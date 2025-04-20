@@ -58,7 +58,8 @@ public class efficiency_functions {
         double[] capacities = { 5, 10, 15 };
         List<pairs> efficiencyScores = general_efficiency(weights, profits, capacities);
         for (pairs pair : efficiencyScores) {
-            System.out.println(pair.id);
+            System.out.println(pair.value);
         }
     }
+    
 }
