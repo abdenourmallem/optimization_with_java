@@ -61,5 +61,5 @@ public class efficiency_functions {
             System.out.println(pair.value);
         }
     }
-    
+
 }
