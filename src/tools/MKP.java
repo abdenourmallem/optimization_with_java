@@ -1,3 +1,5 @@
+package tools;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -7,7 +9,7 @@ import java.util.List;
 
 public class MKP {
     public int[] details; // Contains an array with three elements: [numItems,numConstraints,Optimum],
-                          // Optimum unused for now
+                          // Optimum is unused for now
     public int[] profits;
     public int[][] weights;
     public int[] capacities;
