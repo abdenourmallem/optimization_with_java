@@ -13,7 +13,7 @@ public class Candidate {
         this.size = mkpInstance.numItems;
         this.position = position;
         this.objValue = calcObjVal(mkpInstance.profits);
-        this.fitness = calcFitness(mkpInstance.profits);
+        this.fitness = calcFitness(mkpInstance);
     }
 
     // Constructor to create a candidate with an efficient position
@@ -31,11 +31,8 @@ public class Candidate {
         return obj_val;
     }
 
-    public double calcFitness(int[] profits) {
-        double fitness = 0.0;
-
-        // Calculate the fitness
-
+    public double calcFitness(MKP mkpInstance) {
+        double fitness = fitness_functions.fitness_function(this.position, mkpInstance.EffList, mkpInstance.profits);
         return fitness;
     }
 

@@ -15,6 +15,7 @@ public class MKP {
     public int[][] weights;
     public int[] capacities;
     public List<Pairs> SortedItems;
+    public List<Pairs> EffList;
 
     // Constructor, receives a filepath to the data and create all mkp details
     public MKP(String filepath) {
@@ -26,6 +27,7 @@ public class MKP {
             this.profits = (int[]) result[3];
             this.weights = (int[][]) result[4];
             this.capacities = (int[]) result[5];
+            this.EffList = EffFuncs.general_efficiency(this.weights, this.profits, this.capacities);
             this.SortedItems = sort_items();
         } catch (IOException e) {
             e.printStackTrace();
@@ -100,9 +102,7 @@ public class MKP {
     }
 
     public List<Pairs> sort_items() {
-        List<Pairs> efficiency = EffFuncs.general_efficiency(this.weights,
-                this.profits, this.capacities);
-        List<Pairs> sorted_items = new ArrayList<>(efficiency);
+        List<Pairs> sorted_items = new ArrayList<>(this.EffList);
         sorted_items.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
         return sorted_items;
     }
@@ -122,11 +122,7 @@ public class MKP {
     // }
 
     public static void main(String[] args) {
-        String filepath = "C:\\Users\\USER\\Desktop\\my_projects\\optimization_with_java\\All-MKP-Instances\\chubeas\\OR5x100\\OR5x100-0.25_1.dat"; // Replace
-                                                                                                                                                    // with
-                                                                                                                                                    // your
-                                                                                                                                                    // file
-                                                                                                                                                    // path
+        String filepath = "C:\\Users\\USER\\Desktop\\my_projects\\optimization_with_java\\All-MKP-Instances\\chubeas\\OR5x100\\OR5x100-0.25_1.dat"; 
         MKP mkp = new MKP(filepath);
         mkp.printMKPDetails();
         for (Pairs item : mkp.SortedItems) {
