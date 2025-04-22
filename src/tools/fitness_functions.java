@@ -16,15 +16,15 @@ public class fitness_functions {
     public static void main(String[] args) {
         // Example usage
         int[] bitstring = { 1, 0, 1 };
-        double[][] weights = {
+        int[][] weights = {
                 { 1, 2, 3 },
                 { 4, 5, 6 },
                 { 7, 8, 9 } };
-        double[] profits = { 10, 20, 30 };
-        double[] capacities = { 5, 10, 15 };
+        int[] profits = { 10, 20, 30 };
+        int[] capacities = { 5, 10, 15 };
         List<pairs> efficiency = efficiency_functions.general_efficiency(weights, profits, capacities);
         efficiency_functions.printEfficiency(efficiency);
-        double fitness = fitness_function(bitstring, efficiency, profits);
-        System.out.println("Fitness: " + fitness);
+        // double fitness = fitness_function(bitstring, efficiency, profits);
+        // System.out.println("Fitness: " + fitness);
     }
 }

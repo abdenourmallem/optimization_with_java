@@ -2,7 +2,6 @@ package tools;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Collections;
 
 public class util {
     public static double objective_function(int[] bitstring, double[] profits) {
@@ -34,12 +33,14 @@ public class util {
         return true;
     }
 
-    public static List<pairs> sort_items(double[] profits, double[][] weights, double[] capacities) {
-        List<pairs> efficiency = efficiency_functions.general_efficiency(weights, profits, capacities);
-        List<pairs> sorted_items = new ArrayList<>(efficiency);
-        sorted_items.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
-        return sorted_items;
-    }
+    // public static List<Pairs> sort_items(double[] profits, double[][] weights,
+    // double[] capacities) {
+    // List<Pairs> efficiency = efficiency_functions.general_efficiency(weights,
+    // profits, capacities);
+    // List<Pairs> sorted_items = new ArrayList<>(efficiency);
+    // sorted_items.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
+    // return sorted_items;
+    // }
 
     public static List<Double> probability_distribution(int n_items, double r1, double r2) {
         double r = (r2 - r1) / (n_items - 1);

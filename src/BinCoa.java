@@ -1,19 +1,26 @@
 import java.util.Arrays;
 
-import tools.MKP;
+import tools.*;
 
 public class BinCoa {
+
     public static void main(String[] args) {
-        MKP mkpInstance = new MKP("..\\All-MKP-Instances\\chubeas\\OR5x100\\OR5x100-0.50_1.dat");
-        System.out.println(mkpInstance.details[0]);
-        System.out.println(mkpInstance.details[1]);
-        System.out.println(Arrays.toString(mkpInstance.profits));
+        final int nPop = 200;
+        final int nIter = 10;
+        final float xorProb = (float) 0.2;
+        final int effBias = 2;
+        final int ub = 1;
+        final int lb = 0;
 
-        for (int[] row : mkpInstance.weights) {
-            System.out.println(Arrays.toString(row));
+        MKP mkpInstance = new MKP("..\\All-MKP-Instances\\chubeas\\OR5x100\\OR5x100-0.25_1.dat");
+        mkpInstance.printMKPDetails();
+
+        for (int i = 0; i < 20; i++) {
+            Candidate cand = new Candidate(mkpInstance, effBias);
+            System.out
+                    .println("Candidate objective value: " + cand.objValue + " " + cand.checkConstraints(mkpInstance));
         }
-
-        System.out.println(Arrays.toString(mkpInstance.capacities));
-        System.out.println("added new thing");
+        // System.out.println("Candidate position: " + Arrays.toString(cand.position));
     }
+
 }
