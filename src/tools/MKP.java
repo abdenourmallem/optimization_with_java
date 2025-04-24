@@ -122,7 +122,7 @@ public class MKP {
     // }
 
     public static void main(String[] args) {
-        String filepath = "C:\\Users\\USER\\Desktop\\my_projects\\optimization_with_java\\All-MKP-Instances\\chubeas\\OR5x100\\OR5x100-0.25_1.dat"; 
+        String filepath = "..\\..\\All-MKP-Instances\\chubeas\\OR5x100\\OR5x100-0.25_1.dat";
         MKP mkp = new MKP(filepath);
         mkp.printMKPDetails();
         for (Pairs item : mkp.SortedItems) {
