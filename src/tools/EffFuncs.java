@@ -1,4 +1,5 @@
 package tools;
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,7 +23,7 @@ public class EffFuncs {
         }
 
         for (int i = 0; i < numRows; i++) {
-            double r_value = (double)(totalWeights[i] - capacities[i]) / totalWeights[i];
+            double r_value = (double) (totalWeights[i] - capacities[i]) / totalWeights[i];
             r_values[i] = r_value;
         }
         double[] columnSums = new double[numCols];
