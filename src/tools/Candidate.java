@@ -1,82 +1,114 @@
 package tools;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class Candidate {
     int size;
     public double[] position;
     public double objValue;
     public double fitness;
+    public List<Integer> chromosome;
+    public MKP mkpInstance;
 
     // Constructor to create a candidate with a given position
+    public Candidate(MKP mkpInstance, List<Integer> chromosome) {
+        this.mkpInstance = mkpInstance;
+        this.size = mkpInstance.numItems;
+        this.chromosome = new ArrayList<>(chromosome);
+        this.position = new double[this.size];
+        // this.position=calcPosition();
+        this.objValue = calcObjValCromosome(mkpInstance.profits);
+        this.fitness = calcFitnessCromosome(mkpInstance);
+
+    }
+
     public Candidate(MKP mkpInstance, double[] position) {
+        this.mkpInstance = mkpInstance;
         this.size = mkpInstance.numItems;
         this.position = position;
-        this.objValue = calcObjVal(mkpInstance.profits);
-        this.fitness = calcFitness(mkpInstance);
+        this.chromosome = new ArrayList<>();
+        this.chromosome = calcChromosome();
+        this.objValue = calcObjValCromosome(mkpInstance.profits);
+        this.fitness = calcFitnessCromosome(mkpInstance);
+
     }
 
-    // Constructor to create a candidate with an efficient position
-    public Candidate(MKP mkpInstance, int effBias) {
-        this.size = mkpInstance.numItems;
-        this.position = creEffPos(mkpInstance, effBias);
-        this.objValue = calcObjVal(mkpInstance.profits);
-    }
-
-    public double calcObjVal(int[] profits) {
-        double obj_val = (double) 0;
-        for (int i = 0; i < profits.length; i++) {
-            obj_val += position[i] * profits[i];
-        }
-        return obj_val;
-    }
-
-    public double calcFitness(MKP mkpInstance) {
-        double fitness = fitness_functions.fitness_function(this.position, mkpInstance.EffList, mkpInstance.profits);
-        return fitness;
-    }
-
-    public double[] creEffPos(MKP mkpInstance, int effBias) {
-        double[] effPos = new double[mkpInstance.numItems];
-
-        int[] remCapac = Arrays.copyOf(mkpInstance.capacities, mkpInstance.numConstraints);
-
-        double[] probBias = new double[mkpInstance.numItems];
-        for (int i = 1; i < mkpInstance.numItems + 1; i++) {
-            probBias[i - 1] = 1 - i * (1 / ((mkpInstance.numItems - 1) * (double) effBias));
+    public void calcPosition() {
+        for (int item : chromosome) {
+            this.position[item] = 1;
         }
 
-        for (int i = 0; i < mkpInstance.numItems; i++) {
-            int itm = mkpInstance.SortedItems.get(i).getId();
-            if (canFitItem(itm, remCapac, mkpInstance.weights)) {
-                if (Math.random() < probBias[i]) {
-                    effPos[itm] = 1.0;
-                    for (int j = 0; j < mkpInstance.numConstraints; j++) {
-                        remCapac[j] -= mkpInstance.weights[j][itm];
-                    }
-                }
-            } else {
-                break;
+    }
+
+    public void setChromosome(List<Integer> chromosome, MKP mkp) {
+        this.chromosome = chromosome;
+        this.objValue = calcObjValCromosome(mkp.profits);
+        this.fitness = calcFitnessCromosome(mkp);
+    }
+
+    public void flipBit(int idx) {
+        if (this.chromosome.contains(idx)) {
+            this.chromosome.remove(Integer.valueOf(idx));
+            this.position[idx] = 0;
+            this.objValue = this.objValue - (this.mkpInstance.profits[idx]);
+            this.fitness = this.fitness - (this.mkpInstance.profits[idx]*this.mkpInstance.EffList.get(idx).getValue());
+        } else {
+            this.chromosome.add(idx);
+            this.position[idx] = 1;
+            this.objValue = this.objValue + (this.mkpInstance.profits[idx]);
+            this.fitness = this.fitness + (this.mkpInstance.profits[idx]*this.mkpInstance.EffList.get(idx).getValue());
+
+        }
+    }
+
+    public double getFitness() {
+        return this.fitness;
+    }
+
+    public double getObjVal() {
+        return this.objValue;
+    }
+
+    // chromosome methods
+
+    public List<Integer> calcChromosome() {
+        if (this.chromosome == null) {
+            this.chromosome = new ArrayList<>();
+        } else {
+            this.chromosome.clear();
+        }
+        for (int i = 0; i < this.position.length; i++) {
+            if (this.position[i] != 0.0) {
+                this.chromosome.add(i);
             }
         }
-        return effPos;
+        return this.chromosome;
     }
 
-    private boolean canFitItem(int item, int[] remainingCapac, int[][] weights) {
-        for (int i = 0; i < remainingCapac.length; i++) {
-            if (remainingCapac[i] - weights[i][item] < 0) {
-                return false;
-            }
+
+    public double calcObjValCromosome(int[] profits) {
+        this.objValue = (double) 0;
+        for (int i = 0; i < this.chromosome.size(); i++) {
+            int idx = this.chromosome.get(i);
+            this.objValue += profits[idx];
         }
-        return true;
+        return this.objValue;
     }
 
-    public boolean checkConstraints(MKP mkpInstance) {
+    public double calcFitnessCromosome(MKP mkpInstance) {
+        this.fitness = fitness_functions.fitness_functionChromosome(this.chromosome, mkpInstance.EffList,
+                mkpInstance.profits);
+        return this.fitness;
+    }
+
+    public boolean checkConstraintsChromosome(MKP mkpInstance) {
         int[] totalWeights = new int[mkpInstance.numConstraints];
         for (int i = 0; i < mkpInstance.numConstraints; i++) {
             int weightedSum = 0;
-            for (int j = 0; j < mkpInstance.numItems; j++) {
-                weightedSum += mkpInstance.weights[i][j] * this.position[j];
+            for (int j = 0; j < this.chromosome.size(); j++) {
+                weightedSum += mkpInstance.weights[i][this.chromosome.get(j)];
             }
             totalWeights[i] = (int) weightedSum;
         }

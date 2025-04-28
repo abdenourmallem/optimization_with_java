@@ -11,6 +11,15 @@ public class fitness_functions {
         return fitness;
     }
 
+    public static double fitness_functionChromosome(List <Integer>chromosome, List<Pairs> efficiency, int[] profits) {
+        double fitness = 0.0;
+        for (int i = 0; i < chromosome.size(); i++) {
+           int  idx=chromosome.get(i);
+                fitness += profits[idx] * efficiency.get(idx).getValue();
+        }
+        return fitness;
+    }
+
     public static void main(String[] args) {
         // Example usage
         double[] bitstring = { 1, 0, 1 };

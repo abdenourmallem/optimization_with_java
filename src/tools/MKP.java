@@ -27,7 +27,7 @@ public class MKP {
             this.profits = (int[]) result[3];
             this.weights = (int[][]) result[4];
             this.capacities = (int[]) result[5];
-            this.EffList = EffFuncs.general_efficiency(this.weights, this.profits, this.capacities);
+            this.EffList = EffFuncs.scaled_efficiency(this.weights, this.profits, this.capacities);
             this.SortedItems = sort_items();
         } catch (IOException e) {
             e.printStackTrace();
@@ -122,9 +122,11 @@ public class MKP {
     // }
 
     public static void main(String[] args) {
+
+        
+
         String filepath = "C:\\Users\\USER\\Desktop\\my_projects\\optimization_with_java\\All-MKP-Instances\\chubeas\\OR5x100\\OR5x100-0.25_1.dat"; 
         MKP mkp = new MKP(filepath);
-        mkp.printMKPDetails();
         for (Pairs item : mkp.SortedItems) {
             System.out.println("Item ID: " + item.getId() + ", Efficiency: " + item.getValue());
         }
