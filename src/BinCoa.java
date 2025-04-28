@@ -23,7 +23,7 @@ public class BinCoa {
         for (int i = 0; i < mkpInstance.numItems; i++) {
             double r = Math.random();
             int v = (int) (Math.random() * 2) + 1; // gives 1 or 2
-            newPos[i] = 5.0 * (double) (coati.position[i] + (r * (iguana.position[i] - (v * coati.position[i]))));
+            newPos[i] = 5 * (double) (coati.position[i] + (r * (iguana.position[i] - (v * coati.position[i]))));
         }
         Candidate newCand = new Candidate(mkpInstance, newPos);
         return newCand;
@@ -139,7 +139,7 @@ public class BinCoa {
     public static void main(String[] args) {
         final int nPop = 200;
         final int nIter = 10;
-        final double xorProb = (double) 0.2;
+        final double xorProb = (double) 0.7;
         final int effBias = 2;
         final int ub = 1;
         final int lb = -1;
