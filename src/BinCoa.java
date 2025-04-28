@@ -1,4 +1,3 @@
-import java.util.Arrays;
 
 import tools.*;
 
@@ -139,33 +138,37 @@ public class BinCoa {
     public static void main(String[] args) {
         final int nPop = 200;
         final int nIter = 10;
-        final double xorProb = (double) 0.7;
+        final double xorProb = (double) 0.5;
         final int effBias = 2;
         final int ub = 1;
         final int lb = -1;
         final int optimum = 24381;
+        final int numReps = 15;
 
         MKP mkpInstance = new MKP("..\\All-MKP-Instances\\chubeas\\OR5x100\\OR5x100-0.25_1.dat");
         // mkpInstance.printMKPDetails();
 
         double totalPercentage = (double) 0;
-        for (int i = 0; i < 15; i++) {
+        double totalDFO = (double) 0;
+        for (int i = 0; i < numReps; i++) {
             long startTime = System.currentTimeMillis();
 
             Candidate bestSol = binCoaAlg(mkpInstance, nPop, nIter, xorProb, effBias, ub,
                     lb);
-            System.out.println(
-                    "Candidate objective value: " + bestSol.objValue + " " + bestSol.objValue *
-                            100 / optimum + " " +
-                            bestSol.checkConstraints(mkpInstance));
+            double percentage = bestSol.objValue * 100 / optimum;
+            double dfo = 100 - percentage;
+            totalDFO += dfo;
+            totalPercentage += percentage;
 
+            System.out.printf(
+                    "Candidate objective value: %.1f Percentage: %.2f DFO: %.2f%n",
+                    bestSol.objValue, percentage, dfo);
             long endTime = System.currentTimeMillis();
             long duration = endTime - startTime;
-            double percentage = bestSol.objValue * 100 / optimum;
-            totalPercentage += percentage;
             System.out.println("Execution time: " + duration / 1000.0 + " seconds");
         }
-        System.out.println("average percentage: " + totalPercentage / 15);
+        System.out.printf("Average percentage: %.2f%n", totalPercentage / numReps);
+        System.out.printf("Average DFO: %.2f%n", totalDFO / numReps);
 
     }
 
