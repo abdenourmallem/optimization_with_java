@@ -135,8 +135,8 @@ public class BinCoa {
             for (int i = 0; i < nPop; i++) {
                 pop[i].applyTransferFunc(mkpInstance);
                 pop[i].repairPosition(mkpInstance);
-                // if (t >= nIter)
-                // pop[i].localSearch(mkpInstance);
+                if (t <= 10)
+                    pop[i].localSearchFitness(mkpInstance);
             }
             /* --------------------------------------------------------------------- */
             iguana = bestMemIdx(pop);
@@ -168,47 +168,46 @@ public class BinCoa {
     }
 
     public static void main(String[] args) {
-        binCoaScript();
-        // MKP mkpInstance = new
-        // MKP("..\\All-MKP-Instances\\chubeas\\OR5x100\\OR5x100-0.25_1.dat");
+        // binCoaScript();
+        MKP mkpInstance = new MKP("..\\All-MKP-Instances\\chubeas\\OR5x100\\OR5x100-0.25_1.dat");
 
-        // double totalExecTime = (double) 0;
-        // double totalPercentage = (double) 0;
-        // double totalDFO = (double) 0;
-        // double worstDFO = (double) 0;
-        // double bestDFO = (double) 100000;
-        // for (int i = 0; i < nReps; i++) {
-        // long startTime = System.currentTimeMillis();
+        double totalExecTime = (double) 0;
+        double totalPercentage = (double) 0;
+        double totalDFO = (double) 0;
+        double worstDFO = (double) 0;
+        double bestDFO = (double) 100000;
+        for (int i = 0; i < nReps; i++) {
+            long startTime = System.currentTimeMillis();
 
-        // Candidate bestSol = binCoaAlg(mkpInstance, nPop, nIter, xorProb, effBias, ub,
-        // lb);
-        // double percentage = bestSol.objValue * 100 / optimum;
-        // double dfo = 100 - percentage;
-        // if (dfo < bestDFO)
-        // bestDFO = dfo;
-        // if (dfo > worstDFO)
-        // worstDFO = dfo;
-        // totalDFO += dfo;
-        // totalPercentage += percentage;
+            Candidate bestSol = binCoaAlg(mkpInstance, nPop, nIter, xorProb, effBias, ub,
+                    lb);
+            double percentage = bestSol.objValue * 100 / optimum;
+            double dfo = 100 - percentage;
+            if (dfo < bestDFO)
+                bestDFO = dfo;
+            if (dfo > worstDFO)
+                worstDFO = dfo;
+            totalDFO += dfo;
+            totalPercentage += percentage;
 
-        // System.out.printf(
-        // "%d: Candidate objective value: %.1f Percentage: %.2f%% DFO: %.2f%%%n",
-        // i + 1, bestSol.objValue, percentage, dfo);
-        // // System.out.println("Candidate position: " +
-        // // Arrays.toString(bestSol.position));
-        // long endTime = System.currentTimeMillis();
-        // long execTime = endTime - startTime;
-        // totalExecTime += execTime;
-        // System.out.println("Execution time: " + execTime / 1000.0 + " seconds");
-        // }
-        // // System.out.printf("Average percentage: %.2f%%%n", totalPercentage /
-        // // numReps);
-        // System.out.printf("Number of repetitions: %d%n", nReps);
-        // System.out.printf("Average execution time: %.2fs%n", (totalExecTime / 1000.0)
-        // / nReps);
-        // System.out.printf("Average DFO: %.2f%%%n", totalDFO / nReps);
-        // System.out.printf("Worst DFO: %.2f%%%n", worstDFO);
-        // System.out.printf("Best DFO: %.2f%%%n", bestDFO);
+            System.out.printf(
+                    "%d: Candidate objective value: %.1f Percentage: %.2f%% DFO: %.2f%%%n",
+                    i + 1, bestSol.objValue, percentage, dfo);
+            // System.out.println("Candidate position: " +
+            // Arrays.toString(bestSol.position));
+            long endTime = System.currentTimeMillis();
+            long execTime = endTime - startTime;
+            totalExecTime += execTime;
+            System.out.println("Execution time: " + execTime / 1000.0 + " seconds");
+        }
+        // System.out.printf("Average percentage: %.2f%%%n", totalPercentage /
+        // numReps);
+        System.out.printf("Number of repetitions: %d%n", nReps);
+        System.out.printf("Average execution time: %.2fs%n", (totalExecTime / 1000.0)
+                / nReps);
+        System.out.printf("Average DFO: %.2f%%%n", totalDFO / nReps);
+        System.out.printf("Worst DFO: %.2f%%%n", worstDFO);
+        System.out.printf("Best DFO: %.2f%%%n", bestDFO);
 
     }
 
