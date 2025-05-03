@@ -1,6 +1,7 @@
 package tools;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class Candidate {
     public int size;
@@ -37,10 +38,8 @@ public class Candidate {
         return fitness;
     }
 
-    public void updatePosition(MKP mkpInstance, double[] pos) {
-        for (int i = 0; i < mkpInstance.numItems; i++) {
-            this.position[i] = pos[i];
-        }
+    public void updatePosition(MKP mkpInstance, double[] newPos) {
+        this.position = newPos;
         this.objValue = calcObjVal(mkpInstance);
         this.fitness = calcFitness(mkpInstance);
     }
@@ -93,7 +92,7 @@ public class Candidate {
         // this.printPos();
 
         for (int i = 0; i < this.size; i++) {
-            this.position[i] = TransferFunc.shiftedSigmoid2(this.position[i]);
+            this.position[i] = TransferFunc.shiftedSigmoid(this.position[i]);
         }
         for (int i = 0; i < this.size; i++) {
             if (Math.random() < this.position[i]) {
@@ -122,8 +121,6 @@ public class Candidate {
             if (anyExceeds(totalWeight, mkpInstance.capacities)) {
                 this.position[item] = (double) 0;
                 totalWeight = this.computeTotalWeight(mkpInstance);
-            } else {
-                break;
             }
         }
 
@@ -132,8 +129,6 @@ public class Candidate {
             if (canAddItem(totalWeight, item, mkpInstance)) {
                 this.position[item] = (double) 1;
                 totalWeight = this.computeTotalWeight(mkpInstance);
-            } else {
-                break;
             }
         }
         this.objValue = calcObjVal(mkpInstance);
@@ -175,11 +170,57 @@ public class Candidate {
         System.out.println("Obj value: " + this.objValue);
     }
 
+    public void flipBit(MKP mkpInstance, int idx) {
+        this.position[idx] = 1.00 - this.position[idx];
+        this.objValue = calcObjVal(mkpInstance);
+        this.fitness = calcFitness(mkpInstance);
+    }
+
+    public void localSearchFitness(MKP mkpInstance) {
+        double fitness = this.fitness;
+        double objVal = this.objValue;
+        Candidate clone = new Candidate(mkpInstance, this.position);
+        for (int i = 0; i < mkpInstance.numItems; i++) {
+            int item = mkpInstance.SortedItems.get(i).getId();
+            clone.flipBit(mkpInstance, item);
+            double newFitness = clone.fitness;
+            double newObjValue = clone.objValue;
+            if (clone.checkConstraints(mkpInstance)) {
+                if (newObjValue < objVal) {
+                    if (newFitness > fitness && fitness / newFitness > newObjValue / objVal) {
+                        fitness = newFitness;
+                        objVal = newObjValue;
+                    } else {
+                        clone.flipBit(mkpInstance, item);
+                    }
+
+                } else {
+                    if (newFitness > fitness) {
+                        fitness = newFitness;
+                        objVal = newObjValue;
+                    } else {
+                        if (objVal / newObjValue > newFitness / fitness) {
+                            fitness = newFitness;
+                            objVal = newObjValue;
+                        } else {
+                            clone.flipBit(mkpInstance, item);
+                        }
+                    }
+                }
+            } else {
+                clone.flipBit(mkpInstance, item);
+            }
+
+        }
+        this.position = clone.position;
+        this.objValue = calcObjVal(mkpInstance);
+        this.fitness = calcFitness(mkpInstance);
+    }
+
     /* --------------------------------------------------------------------- */
     private double[] computeTotalWeight(MKP mkpInstance) {
         double[] totalWeight = new double[mkpInstance.numConstraints];
         for (int i = 0; i < mkpInstance.numItems; i++) {
-
             if ((int) this.position[i] == 1) {
                 for (int j = 0; j < mkpInstance.numConstraints; j++) {
                     totalWeight[j] += mkpInstance.weights[j][i];

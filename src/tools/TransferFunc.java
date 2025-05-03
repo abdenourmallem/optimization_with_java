@@ -3,7 +3,7 @@ package tools;
 public class TransferFunc {
     /* ------------------------------ Best one ----------------------------- */
     public static double shiftedSigmoid(double a) {
-        double z = 10 * (a - 0.5);
+        double z = 5 * (a - 0.5);
         return 1 / (1 + Math.exp(-z));
     }
 
