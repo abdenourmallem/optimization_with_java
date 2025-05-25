@@ -6,6 +6,9 @@ import java.util.Random;
 import java.util.Set;
 import tools.*;
 import tools.GGALocalSearchResultsBatch.ResultRow;
+import tools.trainingData.DataRow;
+
+import java.io.*;
 
 public class GGA {
     public static List<List<Pairs>> CalcGuidParts(MKP mkp, int coreSize) {
@@ -132,12 +135,13 @@ public class GGA {
             List<Pairs> gp) {
         double[] popFit = populationFitness(population, mkp);
         int ps = population.length;
-        int[] bestChromosomesIdx = TopIdx.topIdx(popFit, 10);
-        Candidate[] newPopulation = new Candidate[10];
-        for (int i = 0; i < 10; i++) {
+        int bestCHromSize = (int) (ps * 0.05);
+        int[] bestChromosomesIdx = TopIdx.topIdx(popFit, bestCHromSize);
+        Candidate[] newPopulation = new Candidate[bestCHromSize];
+        for (int i = 0; i < bestCHromSize; i++) {
             newPopulation[i] = population[bestChromosomesIdx[i]];
         }
-        return concat(newPopulation, createPopulation(mkp, ps - 10, ir, pb, gp));
+        return concat(newPopulation, createPopulation(mkp, ps - bestCHromSize, ir, pb, gp));
     }
 
     public static List<Integer> localSearchMethod(MKP mkp, List<Pairs> x1, Candidate candidate) {
@@ -145,7 +149,7 @@ public class GGA {
         double objVal = candidate.objValue;
         Candidate clone = new Candidate(mkp, candidate.chromosome);
         int startIdx = 0;
-        if (Math.random() < (1-(mkp.numItems/1000)*1.8))
+        if (Math.random() < (1 - (mkp.numItems / 1000) * 1.8))
             startIdx = x1.size();
         for (int i = startIdx; i < mkp.numItems; i++) {
             int item = mkp.SortedItems.get(i).getId();
@@ -164,10 +168,9 @@ public class GGA {
 
                 } else {
                     if (newFitness > fitness) {
-                            fitness = newFitness;
-                            objVal = newObjValue;
-                        } 
-                    else {
+                        fitness = newFitness;
+                        objVal = newObjValue;
+                    } else {
                         if (objVal / newObjValue > newFitness / fitness) {
                             fitness = newFitness;
                             objVal = newObjValue;
@@ -235,8 +238,8 @@ public class GGA {
                 child2[i] = parent2.position[i];
             }
             for (int i = crossover_point; i < parent2.position.length; i++) {
-                child1[i] = parent2.position[i];
-                child2[i] = parent1.position[i];
+                child1[i] = parent1.position[i];
+                child2[i] = parent2.position[i];
             }
             Candidate childCandidate1 = new Candidate(mkp, child1);
             Candidate childCandidate2 = new Candidate(mkp, child2);
@@ -269,15 +272,16 @@ public class GGA {
         return pos.chromosome;
     }
 
-    public static Candidate executeGGA(MKP mkp) {
-        int ps = 500;
-        int ng = 200;
-        double pc = 0.7;
-        double pm = 0.2;
+    public static Candidate executeGGA(MKP mkp, double alpha, int NG, int PS, double PC, double PM,
+            int NMP) {
+        int ps = PS;
+        int ng = NG;
+        double pc = PC;
+        double pm = PM;
         double pr = 0.1;
-        int nmp = 3;
+        int nmp = NMP;
         int nbk = 5;
-        double IntegrationRate = 0.9;
+        double IntegrationRate = alpha;
         int CoreSize = 30;
         double r1 = 0.4;
         double r2 = 0.6;
@@ -374,7 +378,7 @@ public class GGA {
                         System.out.println("optimum : " + opt);
                         for (int ite = 0; ite < 30; ite++) {
                             long t1 = System.nanoTime();
-                            Candidate can = executeGGA(mkp);
+                            Candidate can = executeGGA(mkp,0.9037924, 313, 288, 0.58414083, 0.45581203, 7);
                             double exec = (System.nanoTime() - t1) / 1000000000.0;
                             times.add(exec);
                             scores.add(can.calcObjValCromosome(mkp.profits));
@@ -403,20 +407,74 @@ public class GGA {
         GGALocalSearchResultsBatch.saveAllResults(allResults, "gga_local_search_results.csv");
     }
 
+    public static void trainingData() {
+        double[] alpha = {0.9037924};
+        int[] ng = { 313};
+        int[] ps={288};
+        double[] pc = {  0.58414083 };
+        double[] pm={ 0.45581203};
+        int[] nmp = { 7 };
+        int[] OR = { 5, 10, 30 };
+        int[] l = { 100, 250, 500 };
+        String[] l2 = { "0.25", "0.50", "0.75" };
+        List<DataRow> allResults = new ArrayList<>();
+        int idx = 0;
+        for (int i = 0; i < alpha.length; i++) {
+            for (int j = 0; j < ng.length; j++) {
+                for (int t = 0; t < ps.length; t++) {
+                    for (int k = 0; k < pc.length; k++) {
+                        for (int kk = 0; kk < pm.length; kk++) {
+                            for (int z = 0; z < nmp.length; z++) {
+                                idx=0;
+                                for(int i2=0;i2<OR.length;i2++){
+                                    for (String k2 : l2) {
+                                        String filepath = "C:\\Users\\USER\\Desktop\\my_projects\\optimization_with_java\\All-MKP-Instances\\chubeas\\OR"
+                                + OR[i2] + "x" + l[i2] + "\\OR" + OR[i2] + "x" + l[i2] + "-" + k2 + "_1.dat";
+                                        MKP mkp = new MKP(filepath);
+                                        double opt = OptimumValues.optimum[idx];
+                                        System.out.println("running : " + filepath);
+                                        System.out.println("optimum : " + opt);
+                                        long t1 = System.nanoTime();
+                                        Candidate can = executeGGA(mkp, alpha[i], ng[j], ps[t], pc[k], pm[kk],
+                                                nmp[z]);
+                                        double exec = (System.nanoTime() - t1) / 1000000000.0;
+                                        double score = (can.calcObjValCromosome(mkp.profits) / opt) * 100;
+                                        System.out.printf("Average D.F.O: %.4f%%\n", score);
+                                        System.out.printf("Execution Time: %.2f seconds\n", exec);
+                                        allResults.add(
+                                                new DataRow(filepath, alpha[i], ng[j], ps[t], pc[k], pm[kk],
+                                                        nmp[z], exec, score));
+                                        idx=10 + idx;
+                                    }
+idx=idx+60+30;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        trainingData.saveTrainingData(allResults, "training_data.csv");
+    }
+
     public static void main(String[] args) {
 
-        MKP mkp = new MKP("C:\\Users\\USER\\Desktop\\my_projects\\optimization_with_java\\All-MKP-Instances\\chubeas\\OR5x250\\OR5x250-0.75_10.dat");
-        for (int ite = 0; ite < 1; ite++) {
-        long t1 = System.nanoTime();
-        Candidate can = executeGGA(mkp);
-        double exec = (System.nanoTime() - t1) / 1000000000.0;
-        System.out.println(can.objValue);
-        System.out.println(exec);
-        System.out.println(can.checkConstraintsChromosome(mkp));
-        can.calcPosition();
-        System.out.println(Arrays.toString(can.position));
-double opt=154662.0;
-        }
-        // GGAscript();
+        // MKP mkp = new MKP(
+        //         "C:\\Users\\USER\\Desktop\\my_projects\\optimization_with_java\\All-MKP-Instances\\chubeas\\OR5x100\\OR5x100-0.25_1.dat");
+        // for (int ite = 0; ite < 1; ite++) {
+        //     long t1 = System.nanoTime();
+        //     Candidate can = executeGGA(mkp);
+        //     double exec = (System.nanoTime() - t1) / 1000000000.0;
+        //     System.out.println(can.objValue);
+        //     System.out.println(exec);
+        //     System.out.println(can.checkConstraintsChromosome(mkp));
+        //     can.calcPosition();
+        //     System.out.println(Arrays.toString(can.position));
+        //     double opt = 154662.0;
+        // }
+       // GGAscript();
+
+         trainingData();
     }
 }
