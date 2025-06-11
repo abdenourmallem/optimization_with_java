@@ -6,7 +6,7 @@ import java.util.List;
 
 public class Candidate {
     int size;
-    public double[] position;
+    public int[] position;
     public double objValue;
     public double fitness;
     public List<Integer> chromosome;
@@ -17,14 +17,14 @@ public class Candidate {
         this.mkpInstance = mkpInstance;
         this.size = mkpInstance.numItems;
         this.chromosome = new ArrayList<>(chromosome);
-        this.position = new double[this.size];
+        this.position = new int[this.size];
         // this.position=calcPosition();
         this.objValue = calcObjValCromosome(mkpInstance.profits);
         this.fitness = calcFitnessCromosome(mkpInstance);
 
     }
 
-    public Candidate(MKP mkpInstance, double[] position) {
+    public Candidate(MKP mkpInstance, int[] position) {
         this.mkpInstance = mkpInstance;
         this.size = mkpInstance.numItems;
         this.position = position;
@@ -41,7 +41,12 @@ public class Candidate {
         }
 
     }
-
+public void setPosition(int[] position) {
+        this.position = position;
+        this.calcChromosome();
+        this.objValue = calcObjValCromosome(this.mkpInstance.profits);
+        this.fitness = calcFitnessCromosome(this.mkpInstance);
+    }
     public void setChromosome(List<Integer> chromosome, MKP mkp) {
         this.chromosome = chromosome;
         this.objValue = calcObjValCromosome(mkp.profits);

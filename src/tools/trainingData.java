@@ -16,9 +16,9 @@ public class trainingData {
         double result;
         int ng;
         int ps;
-        int nmp;
+        double r1;
 
-        public DataRow(String instanceName, double ir, int ng, int ps, double pc, double pm, int nmp,
+        public DataRow(String instanceName, double ir, int ng, int ps, double pc, double pm, double r1,
                 double timeSeconds, double accuracy) {
             this.instanceName = instanceName;
             this.ir = ir;
@@ -27,7 +27,7 @@ public class trainingData {
             this.timeSeconds = timeSeconds;
             this.pc = pc;
             this.pm = pm;
-            this.nmp = nmp;
+            this.r1 = r1;
             this.result = accuracy;
         }
     }
@@ -43,7 +43,7 @@ public class trainingData {
                         + row.ps + ","
                         + row.pc + ","
                         + row.pm + ","
-                        + row.nmp + ","
+                        + row.r1 + ","
                         + row.timeSeconds + ","
                         + row.result + "\n");
             }

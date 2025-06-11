@@ -52,9 +52,14 @@ public class MKP {
         // Parse all numbers from the file
         List<Integer> numbers = new ArrayList<>();
         while (line != null) {
-            String[] tokens = line.trim().split("\\s+");
-            for (String token : tokens) {
-                numbers.add(Integer.parseInt(token));
+            line = line.trim();
+            if (!line.isEmpty()) {
+                String[] tokens = line.split("\\s+");
+                for (String token : tokens) {
+                    if (!token.isEmpty()) {
+                        numbers.add(Integer.parseInt(token));
+                    }
+                }
             }
             line = reader.readLine();
         }
