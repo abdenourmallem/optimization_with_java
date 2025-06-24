@@ -1,3 +1,7 @@
+/*
+ * Contains the main implementation of the proposed GGA + LS 
+ */
+
 package GGA;
 
 import java.util.ArrayList;
@@ -146,7 +150,7 @@ public class GGA {
         return concat(newPopulation, createPopulation(mkp, ps - bestCHromSize, ir, pb, gp));
     }
 
-    public static List<Integer> localSearchMethod(MKP mkp, List<Pairs> x1, CandidateGGA candidate, qAgent agent,
+    public static List<Integer> localSearchMethod(MKP mkp, List<Pairs> x1, CandidateGGA candidate, QAgentGGA agent,
             int gen) {
         candidate.calcPosition();
         // System.out.println("before agent"+candidate.objValue);
@@ -319,7 +323,7 @@ public class GGA {
 
         // evaluate the best chromosomes
         int bestCandIdx = TopIdx.topIdx(populationObjVal(population, mkp), 1)[0];
-        qAgent agent = new qAgent();
+        QAgentGGA agent = new QAgentGGA();
         // population[bestCandIdx].calcPosition();
         // final Candidate bestCandidateForTraining = population[bestCandIdx];
         // agent.train(mkp, bestCandidateForTraining, GuideParts.get(0), 0.1, 0.9, 0.2,

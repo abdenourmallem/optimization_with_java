@@ -1,3 +1,7 @@
+/* 
+ * Contains the optimum values for all the Chu&Beasley OR datasets
+ */
+
 package tools;
 
 public class OptimumValues {

@@ -1,3 +1,7 @@
+/*
+ * Contains implementation necessary for saving the results of an SAC-94 dataset
+ */
+
 package tools;
 
 import java.io.BufferedWriter;

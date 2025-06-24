@@ -1,3 +1,6 @@
+/**
+ * Used to save the results obtained from the GGA algorithm into a csv file
+ */
 package tools;
 
 import java.io.BufferedWriter;

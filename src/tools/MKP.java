@@ -1,3 +1,7 @@
+/*
+ * Contains the implmentations and attributes specific to an MKP instance
+ */
+
 package tools;
 
 import java.io.BufferedReader;
@@ -16,7 +20,7 @@ public class MKP {
     public int[][] weights;
     public int[] capacities;
 
-    public QLearningAgent agent;
+    public QAgentBinCOA agent;
 
     public List<Pairs> SortedItems;
     public List<Pairs> EffList;
@@ -34,7 +38,7 @@ public class MKP {
             this.profits = (int[]) result[3];
             this.weights = (int[][]) result[4];
             this.capacities = (int[]) result[5];
-            this.EffList = EffFuncs.scaled_efficiency(this.weights, this.profits, this.capacities);
+            this.EffList = EffFuncs.scaledEfficiency(this.weights, this.profits, this.capacities);
             this.SortedItems = sort_items();
         } catch (IOException e) {
             e.printStackTrace();

@@ -1,3 +1,7 @@
+/*
+ * Contains implementation necessary for saving the results of a Chu&Beasley OR dataset
+ */
+
 package tools;
 
 import java.io.BufferedWriter;

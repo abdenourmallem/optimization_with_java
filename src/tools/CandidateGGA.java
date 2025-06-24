@@ -1,3 +1,7 @@
+/*
+ * Contains the different functions and attributes of a GGA Candidate
+ */
+
 package tools;
 
 import java.util.ArrayList;
@@ -105,7 +109,7 @@ public class CandidateGGA {
     }
 
     public double calcFitnessCromosome(MKP mkpInstance) {
-        this.fitness = fitness_functions.fitness_functionChromosome(this.chromosome, mkpInstance.EffList,
+        this.fitness = fitnessFuncs.fitnessFuncChromosome(this.chromosome, mkpInstance.EffList,
                 mkpInstance.profits);
         return this.fitness;
     }

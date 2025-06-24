@@ -1,3 +1,7 @@
+/*
+ * Contains the different functions and attributes of a BinCOA Candidate
+ */
+
 package tools;
 
 import java.util.Arrays;
@@ -9,7 +13,12 @@ public class Candidate {
     public double objValue;
     public double fitness;
 
-    // Constructor to create a candidate with a given position
+    /**
+     * Constructor to create a candidate with a given position
+     * 
+     * @param mkpInstance
+     * @param position
+     */
     public Candidate(MKP mkpInstance, double[] position) {
         this.size = mkpInstance.numItems;
         this.position = position;
@@ -17,7 +26,12 @@ public class Candidate {
         this.fitness = calcFitness(mkpInstance);
     }
 
-    // Constructor to create a candidate with an efficient position
+    /**
+     * Constructor to create a candidate with an efficient position
+     * 
+     * @param mkpInstance
+     * @param effBias
+     */
     public Candidate(MKP mkpInstance, int effBias) {
         this.size = mkpInstance.numItems;
         this.position = creEffPos(mkpInstance, effBias);
@@ -25,13 +39,24 @@ public class Candidate {
         this.fitness = calcFitness(mkpInstance);
     }
 
+    /**
+     * Constructor to create a candidate with a feasible position
+     * 
+     * @param mkpInstance
+     */
     public Candidate(MKP mkpInstance) {
         this.size = mkpInstance.numItems;
-        this.position = creValidPos(mkpInstance);
+        this.position = creFeasiblePos(mkpInstance);
         this.objValue = calcObjVal(mkpInstance);
         this.fitness = calcFitness(mkpInstance);
     }
 
+    /**
+     * Calculates the objective value of the candidate
+     * 
+     * @param mkpInstance
+     * @return
+     */
     public double calcObjVal(MKP mkpInstance) {
         double obj_val = (double) 0;
         for (int i = 0; i < mkpInstance.profits.length; i++) {
@@ -40,17 +65,36 @@ public class Candidate {
         return obj_val;
     }
 
+    /**
+     * Fitness here is considered to be different than the objective value
+     * 
+     * @param mkpInstance
+     * @return
+     */
     public double calcFitness(MKP mkpInstance) {
-        double fitness = fitness_functions.fitness_function(this.position, mkpInstance.EffList, mkpInstance.profits);
+        double fitness = fitnessFuncs.fitnessFunc(this.position, mkpInstance.EffList, mkpInstance.profits);
         return fitness;
     }
 
+    /**
+     * Change the position of the candidate with a new given position
+     * 
+     * @param mkpInstance
+     * @param newPos
+     */
     public void updatePosition(MKP mkpInstance, double[] newPos) {
         this.position = newPos.clone();
         this.objValue = calcObjVal(mkpInstance);
         this.fitness = calcFitness(mkpInstance);
     }
 
+    /**
+     * Returns an efficient position
+     * 
+     * @param mkpInstance
+     * @param effBias
+     * @return
+     */
     public double[] creEffPos(MKP mkpInstance, int effBias) {
         double[] effPos = new double[mkpInstance.numItems];
 
@@ -103,7 +147,13 @@ public class Candidate {
         return effPos;
     }
 
-    public double[] creValidPos(MKP mkpInstance) {
+    /**
+     * Returns a feasible solution
+     * 
+     * @param mkpInstance
+     * @return
+     */
+    public double[] creFeasiblePos(MKP mkpInstance) {
         double[] validPos = new double[mkpInstance.numItems];
 
         for (int i = 0; i < mkpInstance.numItems; i++) {
@@ -117,6 +167,12 @@ public class Candidate {
         return validPos;
     }
 
+    /**
+     * Verifies whether the position is feasible or not
+     * 
+     * @param mkpInstance
+     * @return
+     */
     public boolean checkConstraints(MKP mkpInstance) {
         int[] totalWeights = new int[mkpInstance.numConstraints];
         for (int i = 0; i < mkpInstance.numConstraints; i++) {
@@ -134,6 +190,11 @@ public class Candidate {
         return true;
     }
 
+    /**
+     * Applies a transfer function on the candidate
+     * 
+     * @param mkpInstance
+     */
     public void applyTransferFunc(MKP mkpInstance) {
         // System.out.println("before applying transfer funct: ");
         // this.printPos();
@@ -154,6 +215,11 @@ public class Candidate {
         // this.printPos();
     }
 
+    /**
+     * Applies the effiency based repair algorithm
+     * 
+     * @param mkpInstance
+     */
     public void repairPosition(MKP mkpInstance) {
         if (checkConstraints(mkpInstance)) {
             return;
@@ -181,6 +247,11 @@ public class Candidate {
         this.fitness = calcFitness(mkpInstance);
     }
 
+    /**
+     * Repairs a position via the Q learning agent
+     * 
+     * @param mkpInstance
+     */
     public void repairViaQAgent(MKP mkpInstance) {
         if (checkConstraints(mkpInstance)) {
             return;
@@ -200,6 +271,11 @@ public class Candidate {
         this.fitness = calcFitness(mkpInstance);
     }
 
+    /**
+     * Applies a naive bit flip local search
+     * 
+     * @param mkpInstance
+     */
     public void localSearch(MKP mkpInstance) {
         if (!checkConstraints(mkpInstance)) {
             return;
@@ -227,21 +303,17 @@ public class Candidate {
 
     }
 
-    public void printPos() {
-        System.out.println("cand Position: " + Arrays.toString(this.position));
-        // System.out.println("cand fitness: " + this.fitness);
-    }
-
-    public void printObj() {
-        System.out.println("Obj value: " + this.objValue);
-    }
-
     public void flipBit(MKP mkpInstance, int idx) {
         this.position[idx] = 1.00 - this.position[idx];
         this.objValue = calcObjVal(mkpInstance);
         this.fitness = calcFitness(mkpInstance);
     }
 
+    /**
+     * Applies the neighborhood local search function
+     * 
+     * @param mkpInstance
+     */
     public void localSearchFitness(MKP mkpInstance) {
         double fitness = this.fitness;
         double objVal = this.objValue;
@@ -332,6 +404,17 @@ public class Candidate {
             }
         }
         return true;
+    }
+
+    /* --------------------------------------------------------------------- */
+
+    public void printPos() {
+        System.out.println("cand Position: " + Arrays.toString(this.position));
+        // System.out.println("cand fitness: " + this.fitness);
+    }
+
+    public void printObj() {
+        System.out.println("Obj value: " + this.objValue);
     }
 
     /* --------------------------------------------------------------------- */

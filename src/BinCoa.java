@@ -1,3 +1,7 @@
+/*
+ * Contains the main implementation of the proposed BinCOAQ
+ */
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -9,9 +13,7 @@ import tools.TrainingData.DataRow;
 
 public class BinCoa {
 
-    /** does something */
     public static final int nPop = 600;
-    //
     public static final int nIter = 20;
     public static final double xorProb = (double) 1;
     public static final int effBias = 2;
@@ -263,12 +265,8 @@ public class BinCoa {
         // binCoaScriptChuBeas5x100();
         // binCoaScriptSac();
         MKP mkpInstance = new MKP("..\\All-MKP-Instances\\chubeas\\OR5x100\\OR5x100-0.25_1.dat");
-        QLearningAgent agent = new QLearningAgent(mkpInstance);
-        // agent.learn();
+        QAgentBinCOA agent = new QAgentBinCOA(mkpInstance);
         mkpInstance.agent = agent;
-
-        // HashMapToFile.saveToFile(agent.qTable, "q-agent-" +
-        // mkpInstance.instanceName);
 
         double totalExecTime = (double) 0;
         double totalPercentage = (double) 0;
@@ -292,15 +290,11 @@ public class BinCoa {
             System.out.printf(
                     "%d: Candidate objective value: %.1f Percentage: %.2f%% DFO: %.2f%%%n",
                     i + 1, bestSol.objValue, percentage, dfo);
-            // System.out.println("Candidate position: " +
-            // Arrays.toString(bestSol.position));
             long endTime = System.currentTimeMillis();
             long execTime = endTime - startTime;
             totalExecTime += execTime;
             System.out.println("Execution time: " + execTime / 1000.0 + " seconds");
         }
-        // System.out.printf("Average percentage: %.2f%%%n", totalPercentage /
-        // numReps);
         System.out.printf("Number of repetitions: %d%n", nReps);
         System.out.printf("Average execution time: %.2fs%n", (totalExecTime / 1000.0)
                 / nReps);

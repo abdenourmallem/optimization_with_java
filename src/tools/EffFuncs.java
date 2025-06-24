@@ -1,3 +1,7 @@
+/*
+* Contains the implementations of the efficiency functions
+*/
+
 package tools;
 
 import java.util.List;
@@ -7,7 +11,7 @@ import java.util.OptionalDouble;
 
 public class EffFuncs {
 
-    public static List<Pairs> general_efficiency(int[][] weights, int[] profits, int[] capacities) {
+    public static List<Pairs> generalEfficiency(int[][] weights, int[] profits, int[] capacities) {
         int numRows = weights.length;
         int numCols = weights[0].length;
         int[] totalWeights = new int[numCols];
@@ -46,7 +50,7 @@ public class EffFuncs {
         return efficiency;
     }
 
-    public static List<Pairs> scaled_efficiency(int[][] weights, int[] profits, int[] capacities) {
+    public static List<Pairs> scaledEfficiency(int[][] weights, int[] profits, int[] capacities) {
         int numRows = weights.length;
         int numCols = weights[0].length;
         double[] efficiencyScores = new double[numCols];
@@ -90,7 +94,7 @@ public class EffFuncs {
                 { 7, 8, 9 } };
         int[] profits = { 10, 20, 30 };
         int[] capacities = { 5, 10, 15 };
-        List<Pairs> efficiencyScores = new ArrayList<Pairs>(general_efficiency(weights, profits, capacities));
+        List<Pairs> efficiencyScores = new ArrayList<Pairs>(generalEfficiency(weights, profits, capacities));
         for (Pairs pair : efficiencyScores) {
             System.out.println(pair.value);
         }
