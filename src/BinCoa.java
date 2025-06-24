@@ -9,7 +9,9 @@ import tools.TrainingData.DataRow;
 
 public class BinCoa {
 
+    /** does something */
     public static final int nPop = 600;
+    //
     public static final int nIter = 20;
     public static final double xorProb = (double) 1;
     public static final int effBias = 2;
@@ -27,10 +29,27 @@ public class BinCoa {
         return currentBest;
     }
 
+    /**
+     * Receives two candidates and returns the position of the candidate with the
+     * highest objective value
+     * 
+     * @param cand1
+     * @param cand2
+     * @return position of the candidate with the highest objective value
+     */
     public static double[] bestPos(Candidate cand1, Candidate cand2) {
         return (cand1.objValue > cand2.objValue) ? cand1.position : cand2.position;
     }
 
+    /**
+     * If the position of the iguana is feasible and has better fitness than
+     * bestSol, bestSol takes the position of the iguana
+     * 
+     * @param mkpInstance
+     * @param iguana
+     * @param bestSol
+     * @return
+     */
     public static double[] betterPos(MKP mkpInstance, Candidate iguana, Candidate bestSol) {
         if (!iguana.checkConstraints(mkpInstance)) {
             return bestSol.position;
@@ -42,6 +61,16 @@ public class BinCoa {
         }
     }
 
+    /**
+     * Follows the first step of Phase 01 of the coati optimization algorithm where
+     * the coaties change their posiitons based on the position of the iguana on the
+     * top of the tree
+     * 
+     * @param mkpInstance
+     * @param coati
+     * @param iguana
+     * @return
+     */
     public static Candidate approachIguanaT(MKP mkpInstance, Candidate coati, Candidate iguana) {
         double[] newPos = new double[mkpInstance.numItems];
         for (int i = 0; i < mkpInstance.numItems; i++) {
@@ -53,6 +82,16 @@ public class BinCoa {
         return newCand;
     }
 
+    /**
+     * Follows the second step of Phase 01 of the coati optimization algorithm where
+     * the coaties change their posiitons based on the position of the iguana on the
+     * ground
+     * 
+     * @param mkpInstance
+     * @param coati
+     * @param iguana
+     * @return
+     */
     public static Candidate approachIguanaG(MKP mkpInstance, Candidate coati, Candidate iguana) {
         double[] newPos = new double[mkpInstance.numItems];
         if (iguana.objValue > coati.objValue) {
@@ -72,6 +111,15 @@ public class BinCoa {
 
     }
 
+    /**
+     * Creates an iguana with a random position
+     * 
+     * @param mkpInstance
+     * @param ub
+     * @param lb
+     * @param effBias
+     * @return
+     */
     public static Candidate iguanaGPos(MKP mkpInstance, int ub, int lb, int effBias) {
         // double[] pos = new double[mkpInstance.numItems];
         // for (int i = 0; i < mkpInstance.numItems; i++) {
@@ -81,6 +129,16 @@ public class BinCoa {
         return newCand;
     }
 
+    /**
+     * Follows Phase 02 of the COA where the coati moves a short distance within a
+     * localized search space
+     * 
+     * @param mkpInstance
+     * @param coati
+     * @param ub
+     * @param lb
+     * @return
+     */
     public static Candidate escape(MKP mkpInstance, Candidate coati, int ub, int lb) {
         double[] newPos = new double[mkpInstance.numItems];
         for (int i = 0; i < mkpInstance.numItems; i++) {
@@ -91,6 +149,17 @@ public class BinCoa {
         return newCand;
     }
 
+    /**
+     * Applies the bitwise XOR operation in BinCOA between the iguana, current
+     * candidate and a neighbour
+     * 
+     * @param mkpInstance
+     * @param coati
+     * @param iguana
+     * @param neighbour
+     * @param xorProb
+     * @return
+     */
     public static Candidate applyXOR(MKP mkpInstance, Candidate coati, Candidate iguana, Candidate neighbour,
             double xorProb) {
         double[] newPos = new double[mkpInstance.numItems];
@@ -103,6 +172,19 @@ public class BinCoa {
         // return coati;
     }
 
+    /**
+     * The main algorithm of COA which contains the main loop and all the different
+     * steps
+     * 
+     * @param mkpInstance
+     * @param nPop
+     * @param nIter
+     * @param xorProb
+     * @param effBias
+     * @param ub
+     * @param lb
+     * @return
+     */
     public static Candidate binCoaAlg(MKP mkpInstance, int nPop, int nIter, double xorProb, int effBias, int ub,
             int lb) {
         // Initiate the population
