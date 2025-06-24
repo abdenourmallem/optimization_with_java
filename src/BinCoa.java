@@ -1,41 +1,45 @@
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import tools.*;
 import tools.ResultBatch.ResultRow;
+import tools.ResultBatchSac.ResultRowSac;
+import tools.TrainingData.DataRow;
 
 public class BinCoa {
 
-    public static final int nPop = 400;
+    public static final int nPop = 600;
     public static final int nIter = 20;
     public static final double xorProb = (double) 1;
     public static final int effBias = 2;
     public static final int ub = 1;
     public static final int lb = -1;
     public static final int optimum = 24381;
-    public static final int nReps = 10;
+    public static final int nReps = 30;
 
-    public static int bestMemIdx(Candidate[] pop) {
-        int best = 0;
+    public static int bestMemIdx(Candidate[] pop, int currentBest) {
         for (int i = 0; i < pop.length; i++) {
-            if (pop[i].objValue > pop[best].objValue) {
-                best = i;
+            if (pop[i].objValue >= pop[currentBest].objValue) {
+                currentBest = i;
             }
         }
-        return best;
+        return currentBest;
     }
 
     public static double[] bestPos(Candidate cand1, Candidate cand2) {
         return (cand1.objValue > cand2.objValue) ? cand1.position : cand2.position;
     }
 
-    public static double[] betterPos(MKP mkpInstance, Candidate cand1, Candidate cand2) {
-        if ((cand1.objValue > cand2.objValue) && cand1.checkConstraints(mkpInstance))
-            return cand1.position;
-        else
-            return cand2.position;
+    public static double[] betterPos(MKP mkpInstance, Candidate iguana, Candidate bestSol) {
+        if (!iguana.checkConstraints(mkpInstance)) {
+            return bestSol.position;
+        }
+        if (iguana.objValue >= bestSol.objValue) {
+            return iguana.position;
+        } else {
+            return bestSol.position;
+        }
     }
 
     public static Candidate approachIguanaT(MKP mkpInstance, Candidate coati, Candidate iguana) {
@@ -68,12 +72,12 @@ public class BinCoa {
 
     }
 
-    public static Candidate iguanaGPos(MKP mkpInstance, int ub, int lb) {
-        double[] pos = new double[mkpInstance.numItems];
-        for (int i = 0; i < mkpInstance.numItems; i++) {
-            pos[i] = 5 * (double) (lb + (Math.random() * (ub - lb)));
-        }
-        Candidate newCand = new Candidate(mkpInstance, pos);
+    public static Candidate iguanaGPos(MKP mkpInstance, int ub, int lb, int effBias) {
+        // double[] pos = new double[mkpInstance.numItems];
+        // for (int i = 0; i < mkpInstance.numItems; i++) {
+        // pos[i] = (double) (lb + (Math.random() * (ub - lb)));
+        // }
+        Candidate newCand = new Candidate(mkpInstance, effBias);
         return newCand;
     }
 
@@ -81,7 +85,7 @@ public class BinCoa {
         double[] newPos = new double[mkpInstance.numItems];
         for (int i = 0; i < mkpInstance.numItems; i++) {
             double r = Math.random();
-            newPos[i] = coati.position[i] + (1 - r / 2) * (lb + r * (ub - lb));
+            newPos[i] = coati.position[i] + (1 - r * 2) * (lb + r * (ub - lb));
         }
         Candidate newCand = new Candidate(mkpInstance, newPos);
         return newCand;
@@ -89,7 +93,6 @@ public class BinCoa {
 
     public static Candidate applyXOR(MKP mkpInstance, Candidate coati, Candidate iguana, Candidate neighbour,
             double xorProb) {
-        // if (Math.random() < xorProb) {
         double[] newPos = new double[mkpInstance.numItems];
         for (int i = 0; i < mkpInstance.numItems; i++) {
             newPos[i] = (double) ((int) coati.position[i]
@@ -97,7 +100,6 @@ public class BinCoa {
         }
         Candidate newCand = new Candidate(mkpInstance, newPos);
         return newCand;
-        // }
         // return coati;
     }
 
@@ -109,7 +111,7 @@ public class BinCoa {
             pop[i] = new Candidate(mkpInstance, effBias);
         }
 
-        int iguana = bestMemIdx(pop);
+        int iguana = bestMemIdx(pop, 0);
         Candidate bestSol = new Candidate(mkpInstance, pop[iguana].position);
 
         for (int t = 1; t <= nIter; t++) {
@@ -119,57 +121,72 @@ public class BinCoa {
                     pop[i].updatePosition(mkpInstance, bestPos(pop[i], afterApproachT));
                 }
             }
+            Candidate iguG = iguanaGPos(mkpInstance, ub, lb, effBias);
             for (int i = nPop / 2; i < nPop; i++) {
                 if (i != iguana) {
-                    Candidate iguG = iguanaGPos(mkpInstance, ub, lb);
                     Candidate afterApproachG = approachIguanaG(mkpInstance, pop[i], iguG);
                     pop[i].updatePosition(mkpInstance, bestPos(pop[i], afterApproachG));
                 }
             }
             /* --------------------------------------------------------------------- */
             for (int i = 0; i < nPop; i++) {
-                Candidate afterEscape = escape(mkpInstance, pop[i], ub / t, lb / t);
-                pop[i].updatePosition(mkpInstance, bestPos(pop[i], afterEscape));
+                if (i != iguana) {
+                    Candidate afterEscape = escape(mkpInstance, pop[i], ub / t, lb /
+                            t);
+                    pop[i].updatePosition(mkpInstance, bestPos(pop[i], afterEscape));
+                }
             }
             /* --------------------------------------------------------------------- */
             for (int i = 0; i < nPop; i++) {
-                pop[i].applyTransferFunc(mkpInstance);
-                pop[i].repairPosition(mkpInstance);
-                if (t <= 10)
-                    pop[i].localSearchFitness(mkpInstance);
-            }
-            /* --------------------------------------------------------------------- */
-            iguana = bestMemIdx(pop);
-            bestSol.updatePosition(mkpInstance, betterPos(mkpInstance, pop[iguana],
-                    bestSol));
-            if (t <= nIter / 3) {
-                for (int i = 0; i < nPop; i++) {
-                    int neighbourIdx = (int) (Math.random() * nPop);
-                    Candidate afterXor = applyXOR(mkpInstance, pop[i], pop[iguana],
-                            pop[neighbourIdx], xorProb);
-                    // pop[i].updatePosition(mkpInstance, bestPos(pop[i], afterXor));
-                    pop[i].updatePosition(mkpInstance, afterXor.position);
+                if (i != iguana) {
+                    pop[i].applyTransferFunc(mkpInstance);
+                    if (t <= nIter - 5) {
+                        pop[i].repairPosition(mkpInstance);
+                    } else {
+                        pop[i].repairViaQAgent(mkpInstance);
+                    }
+                    if (t == nIter) {
+                        if (i > nPop / 2)
+                            pop[i].localSearch(mkpInstance);
+                    }
                 }
             }
-            iguana = bestMemIdx(pop);
-
-            // System.out.printf("iguana: (%.2f , %d)%n", pop[iguana].objValue,
-            // pop[iguana].checkConstraints(mkpInstance) ? 1 : 0);
-            // System.out.printf("bestSol: (%.2f , %d)%n", bestSol.objValue,
-            // bestSol.checkConstraints(mkpInstance) ? 1 : 0);
-            // System.out.println(bestSol.objValue);
-
+            /* --------------------------------------------------------------------- */
+            iguana = bestMemIdx(pop, iguana);
+            pop[iguana].localSearch(mkpInstance);
             bestSol.updatePosition(mkpInstance, betterPos(mkpInstance, pop[iguana],
                     bestSol));
-            // if (t == nIter)
-            // bestSol.localSearch(mkpInstance);
+            if (t >= nIter - 3) {
+                for (int i = 0; i < nPop; i++) {
+                    if (i != iguana) {
+                        int neighbourIdx = (int) (Math.random() * nPop);
+                        Candidate afterXor = applyXOR(mkpInstance, pop[i], pop[iguana],
+                                pop[neighbourIdx], xorProb);
+                        pop[i].updatePosition(mkpInstance, bestPos(pop[i], afterXor));
+                        // pop[i].updatePosition(mkpInstance, afterXor.position);
+                    }
+                }
+            }
+
+            iguana = bestMemIdx(pop, iguana);
+            pop[iguana].localSearch(mkpInstance);
+            bestSol.updatePosition(mkpInstance, betterPos(mkpInstance, pop[iguana],
+                    bestSol));
         }
         return bestSol;
     }
 
     public static void main(String[] args) {
-        // binCoaScript();
+        // binCoaScriptChuBeas();
+        // binCoaScriptChuBeas5x100();
+        // binCoaScriptSac();
         MKP mkpInstance = new MKP("..\\All-MKP-Instances\\chubeas\\OR5x100\\OR5x100-0.25_1.dat");
+        QLearningAgent agent = new QLearningAgent(mkpInstance);
+        // agent.learn();
+        mkpInstance.agent = agent;
+
+        // HashMapToFile.saveToFile(agent.qTable, "q-agent-" +
+        // mkpInstance.instanceName);
 
         double totalExecTime = (double) 0;
         double totalPercentage = (double) 0;
@@ -208,10 +225,9 @@ public class BinCoa {
         System.out.printf("Average DFO: %.2f%%%n", totalDFO / nReps);
         System.out.printf("Worst DFO: %.2f%%%n", worstDFO);
         System.out.printf("Best DFO: %.2f%%%n", bestDFO);
-
     }
 
-    public static void binCoaScript() {
+    public static void binCoaScriptChuBeas() {
         int[] numConstr = { 5, 10, 30 };
         int[] numItems = { 100, 250, 500 };
         String[] alpha = { "0.25", "0.50", "0.75" };
@@ -222,11 +238,10 @@ public class BinCoa {
             for (int j : numItems) {
                 for (String k : alpha) {
                     for (int z : instanceNum) {
-                        String filepath = "C:\\Users\\pro\\Desktop\\optimization_with_java\\All-MKP-Instances\\chubeas\\OR"
-                                + i + "x" + j + "\\OR" + i + "x" + j + "-" + k + "_" + z + ".dat";
+                        String filepath = "OR" + i + "x" + j + "-" + k + "_" + z;
                         MKP mkp = new MKP(filepath);
-
                         double opt = OptimumValues.optimum[idx];
+
                         List<Double> scores = new ArrayList<>();
                         List<Double> times = new ArrayList<>();
                         System.out.println("running : " + filepath);
@@ -259,7 +274,157 @@ public class BinCoa {
                 }
             }
         }
-        ResultBatch.saveAllResults(allResults, "bincoa_mkp_results.csv");
+        ResultBatch.saveAllResults(allResults, "bincoa_mkp_results_new.csv");
     }
 
+    public static void binCoaScriptChuBeas5x100() {
+        List<ResultRow> allResults = new ArrayList<>();
+        int idx = 0;
+        String TransferFuncName = "vshaped";
+        String filepath = "..\\All-MKP-Instances\\chubeas\\OR5x100\\OR5x100-0.25_1.dat";
+        MKP mkp = new MKP(filepath);
+
+        double opt = OptimumValues.optimum[idx];
+        List<Double> scores = new ArrayList<>();
+        List<Double> times = new ArrayList<>();
+        System.out.println("running : " + filepath);
+        System.out.println("optimum : " + opt);
+        for (int ite = 0; ite < nReps; ite++) {
+            long t1 = System.nanoTime();
+            Candidate can = binCoaAlg(mkp, nPop, nIter, xorProb, effBias, ub, lb);
+            double exec = (System.nanoTime() - t1) / 1000000000.0;
+            times.add(exec);
+            scores.add(can.calcObjVal(mkp));
+
+        }
+        double averageTime = times.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+        double averageScore = scores.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+        double bestScore = scores.stream().mapToDouble(Double::doubleValue).max().orElse(0.0);
+        double worstScore = scores.stream().mapToDouble(Double::doubleValue).min().orElse(0.0);
+        allResults.add(new ResultRow(TransferFuncName,
+                ((opt - averageScore) / opt) * 100, ((opt - bestScore) / opt) * 100,
+                ((opt - worstScore) / opt) * 100, averageTime));
+        System.out.printf("Average D.F.O: %.4f%%\n", ((opt - averageScore) / opt) * 100);
+        System.out.printf("Best D.F.O: %.4f%%\n", ((opt - bestScore) / opt) * 100);
+        System.out.printf("Worst D.F.O: %.4f%%\n", ((opt - worstScore) / opt) * 100);
+        System.out.printf("Average Execution Time: %.2f seconds\n", averageTime);
+        ResultBatch.saveAllResults(allResults, TransferFuncName + ".csv");
+    }
+
+    public static void binCoaScriptSac() {
+        String[] datasetName = { "sento", "hp", "pb", "weing" };
+        int[] datasetNumFiles = { 2, 2, 7, 8 };
+        List<ResultRowSac> allResults = new ArrayList<>();
+        int n = 0;
+        for (String dataset : datasetName) {
+            for (int i = 1; i <= datasetNumFiles[n]; i++) {
+                if ("pb".equals(dataset) && i == 3)
+                    continue;
+                if ("pet".equals(dataset) && i == 1)
+                    continue;
+                String filepath;
+                if (dataset == "weish") {
+                    String result = String.format("%02d", i);
+                    filepath = "..\\All-MKP-Instances\\sac94\\"
+                            + dataset + "\\" + dataset + result + ".dat";
+                } else {
+                    filepath = "..\\All-MKP-Instances\\sac94\\"
+                            + dataset + "\\" + dataset + i + ".dat";
+                }
+                MKP mkp = new MKP(filepath);
+
+                int opt = mkp.optimum;
+                int numSucc = 0;
+                double[] objValues = new double[30];
+                List<Double> scores = new ArrayList<>();
+                List<Double> times = new ArrayList<>();
+                System.out.println("running : " + filepath);
+                System.out.println("optimum : " + opt);
+                for (int ite = 0; ite < nReps; ite++) {
+                    long t1 = System.nanoTime();
+                    Candidate can = binCoaAlg(mkp, nPop, nIter, xorProb, effBias, ub, lb);
+                    objValues[ite] = can.objValue;
+                    if (can.objValue == opt)
+                        numSucc++;
+                    double exec = (System.nanoTime() - t1) / 1000000000.0;
+                    times.add(exec);
+                    scores.add(can.calcObjVal(mkp));
+
+                }
+                double mean = scores.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+                double std = 0.0;
+                for (int j = 0; j < nReps; j++) {
+                    std += Math.pow(objValues[j] - mean, 2);
+                }
+                std = Math.sqrt(std / nReps);
+                double averageTime = times.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+                double averageScore = scores.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+                double bestScore = scores.stream().mapToDouble(Double::doubleValue).max().orElse(0.0);
+                double worstScore = scores.stream().mapToDouble(Double::doubleValue).min().orElse(0.0);
+                allResults.add(new ResultRowSac(dataset + i,
+                        numSucc / (double) nReps, std));
+                System.out.printf("Average D.F.O: %.4f%%\n", ((opt - averageScore) / opt) * 100);
+                System.out.printf("Best D.F.O: %.4f%%\n", ((opt - bestScore) / opt) * 100);
+                System.out.printf("Worst D.F.O: %.4f%%\n", ((opt - worstScore) / opt) * 100);
+                System.out.printf("Average Execution Time: %.2f seconds\n", averageTime);
+                System.out.printf("Success rate: %.2f\n", (numSucc / (double) nReps));
+                System.out.printf("std: %.2f\n", std);
+            }
+            n++;
+        }
+        ResultBatchSac.saveAllResults(allResults, "bincoa_mkp_results_sac94.csv");
+    }
+
+    // public static void trainingData() {
+    // double[] alpha = { 0.9037924 };
+    // int[] ng = { 313 };
+    // int[] ps = { 288 };
+    // double[] pc = { 0.58414083 };
+    // double[] pm = { 0.45581203 };
+    // int[] nmp = { 7 };
+    // int[] OR = { 5, 10, 30 };
+    // int[] l = { 100, 250, 500 };
+    // String[] l2 = { "0.25", "0.50", "0.75" };
+    // List<DataRow> allResults = new ArrayList<>();
+    // int idx = 0;
+    // for (int i = 0; i < alpha.length; i++) {
+    // for (int j = 0; j < ng.length; j++) {
+    // for (int t = 0; t < ps.length; t++) {
+    // for (int k = 0; k < pc.length; k++) {
+    // for (int kk = 0; kk < pm.length; kk++) {
+    // for (int z = 0; z < nmp.length; z++) {
+    // idx = 0;
+    // for (int i2 = 0; i2 < OR.length; i2++) {
+    // for (String k2 : l2) {
+    // String filepath =
+    // "C:\\Users\\USER\\Desktop\\my_projects\\optimization_with_java\\All-MKP-Instances\\chubeas\\OR"
+    // + OR[i2] + "x" + l[i2] + "\\OR" + OR[i2] + "x" + l[i2] + "-" + k2
+    // + "_1.dat";
+    // MKP mkp = new MKP(filepath);
+    // double opt = OptimumValues.optimum[idx];
+    // System.out.println("running : " + filepath);
+    // System.out.println("optimum : " + opt);
+    // long t1 = System.nanoTime();
+    // Candidate can = binCoaAlg(mkp, alpha[i], ng[j], ps[t], pc[k], pm[kk],
+    // nmp[z]);
+    // double exec = (System.nanoTime() - t1) / 1000000000.0;
+    // double score = (can.calcObjVal(mkp.profits) / opt) * 100;
+    // System.out.printf("Average D.F.O: %.4f%%\n", score);
+    // System.out.printf("Execution Time: %.2f seconds\n", exec);
+    // allResults.add(
+    // new DataRow(filepath, alpha[i], ng[j], ps[t], pc[k], pm[kk],
+    // nmp[z], exec, score));
+    // idx = 10 + idx;
+    // }
+    // idx = idx + 60 + 30;
+    // }
+    // }
+    // }
+    // }
+    // }
+    // }
+    // }
+
+    // trainingData.saveTrainingData(allResults, "training_data.csv");
+    // }
 }

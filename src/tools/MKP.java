@@ -9,17 +9,24 @@ import java.util.List;
 
 public class MKP {
     public int numItems;
+    public String instanceName;
     public int numConstraints;
     public int optimum;
     public int[] profits;
     public int[][] weights;
     public int[] capacities;
+
+    public QLearningAgent agent;
+
     public List<Pairs> SortedItems;
     public List<Pairs> EffList;
 
     // Constructor, receives a filepath to the data and create all mkp details
     public MKP(String filepath) {
         try {
+            // String miniName = instanceName.split("-")[0];
+            // String fullPath = "..\\All-MKP-Instances\\chubeas\\" + miniName + "\\" +
+            // instanceName + ".dat";
             Object[] result = readMKPData(filepath);
             this.numItems = (int) result[0];
             this.numConstraints = (int) result[1];
@@ -27,7 +34,7 @@ public class MKP {
             this.profits = (int[]) result[3];
             this.weights = (int[][]) result[4];
             this.capacities = (int[]) result[5];
-            this.EffList = EffFuncs.general_efficiency(this.weights, this.profits, this.capacities);
+            this.EffList = EffFuncs.scaled_efficiency(this.weights, this.profits, this.capacities);
             this.SortedItems = sort_items();
         } catch (IOException e) {
             e.printStackTrace();
@@ -52,9 +59,14 @@ public class MKP {
         // Parse all numbers from the file
         List<Integer> numbers = new ArrayList<>();
         while (line != null) {
-            String[] tokens = line.trim().split("\\s+");
-            for (String token : tokens) {
-                numbers.add(Integer.parseInt(token));
+            line = line.trim();
+            if (!line.isEmpty()) {
+                String[] tokens = line.split("\\s+");
+                for (String token : tokens) {
+                    if (!token.isEmpty()) {
+                        numbers.add(Integer.parseInt(token));
+                    }
+                }
             }
             line = reader.readLine();
         }
@@ -122,11 +134,12 @@ public class MKP {
     // }
 
     public static void main(String[] args) {
-        String filepath = "..\\..\\All-MKP-Instances\\chubeas\\OR5x100\\OR5x100-0.25_1.dat";
+        String filepath = "..\\All-MKP-Instances\\sac94\\pb\\pb6.dat";
         MKP mkp = new MKP(filepath);
         mkp.printMKPDetails();
-        for (Pairs item : mkp.SortedItems) {
-            System.out.println("Item ID: " + item.getId() + ", Efficiency: " + item.getValue());
-        }
+        // for (Pairs item : mkp.SortedItems) {
+        // System.out.println("Item ID: " + item.getId() + ", Efficiency: " +
+        // item.getValue());
+        // }
     }
 }

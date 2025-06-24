@@ -46,14 +46,36 @@ public class EffFuncs {
         return efficiency;
     }
 
-    public static Pairs calcSimpEff(int itmIdx, MKP mkpInstance) {
-        int sumWeights = 0;
-        for (int i = 0; i < mkpInstance.numConstraints; i++) {
-            sumWeights += mkpInstance.weights[i][itmIdx];
+    public static List<Pairs> scaled_efficiency(int[][] weights, int[] profits, int[] capacities) {
+        int numRows = weights.length;
+        int numCols = weights[0].length;
+        double[] efficiencyScores = new double[numCols];
+
+        for (int j = 0; j < numCols; j++) {
+            double sum = 0.0;
+            for (int i = 0; i < numRows; i++) {
+                sum += (double) weights[i][j] / capacities[i];
+            }
+            efficiencyScores[j] = profits[j] / sum;
         }
-        double itmEff = mkpInstance.profits[itmIdx] / sumWeights;
-        return new Pairs(itmIdx, itmEff);
+
+        OptionalDouble avg = Arrays.stream(efficiencyScores).average();
+        List<Pairs> efficiency = new ArrayList<>();
+        for (int i = 0; i < profits.length; i++) {
+            efficiency.add(new Pairs(i, efficiencyScores[i]));
+        }
+
+        return efficiency;
     }
+
+    // public static Pairs calcSimpEff(int itmIdx, MKP mkpInstance) {
+    // int sumWeights = 0;
+    // for (int i = 0; i < mkpInstance.numConstraints; i++) {
+    // sumWeights += mkpInstance.weights[i][itmIdx];
+    // }
+    // double itmEff = mkpInstance.profits[itmIdx] / sumWeights;
+    // return new Pairs(itmIdx, itmEff);
+    // }
 
     public static void printEfficiency(List<Pairs> efficiency) {
         for (Pairs pair : efficiency) {

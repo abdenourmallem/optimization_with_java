@@ -25,6 +25,13 @@ public class Candidate {
         this.fitness = calcFitness(mkpInstance);
     }
 
+    public Candidate(MKP mkpInstance) {
+        this.size = mkpInstance.numItems;
+        this.position = creValidPos(mkpInstance);
+        this.objValue = calcObjVal(mkpInstance);
+        this.fitness = calcFitness(mkpInstance);
+    }
+
     public double calcObjVal(MKP mkpInstance) {
         double obj_val = (double) 0;
         for (int i = 0; i < mkpInstance.profits.length; i++) {
@@ -39,7 +46,7 @@ public class Candidate {
     }
 
     public void updatePosition(MKP mkpInstance, double[] newPos) {
-        this.position = newPos;
+        this.position = newPos.clone();
         this.objValue = calcObjVal(mkpInstance);
         this.fitness = calcFitness(mkpInstance);
     }
@@ -68,6 +75,46 @@ public class Candidate {
             }
         }
         return effPos;
+    }
+
+    public static boolean[] creEffPosBool(MKP mkpInstance, int effBias) {
+        boolean[] effPos = new boolean[mkpInstance.numItems];
+
+        int[] remCapac = Arrays.copyOf(mkpInstance.capacities, mkpInstance.numConstraints);
+
+        double[] probBias = new double[mkpInstance.numItems];
+        for (int i = 1; i < mkpInstance.numItems + 1; i++) {
+            probBias[i - 1] = 1 - i * (1 / ((mkpInstance.numItems - 1) * (double) effBias));
+        }
+
+        for (int i = 0; i < mkpInstance.numItems; i++) {
+            int itm = mkpInstance.SortedItems.get(i).getId();
+            if (canFitItem(itm, remCapac, mkpInstance.weights)) {
+                if (Math.random() < probBias[i]) {
+                    effPos[itm] = true;
+                    for (int j = 0; j < mkpInstance.numConstraints; j++) {
+                        remCapac[j] -= mkpInstance.weights[j][itm];
+                    }
+                }
+            } else {
+                break;
+            }
+        }
+        return effPos;
+    }
+
+    public double[] creValidPos(MKP mkpInstance) {
+        double[] validPos = new double[mkpInstance.numItems];
+
+        for (int i = 0; i < mkpInstance.numItems; i++) {
+            if (Math.random() > 0.5) {
+                validPos[i] = 1.0;
+                if (!checkConstraints(mkpInstance)) {
+                    validPos[i] = 0.0;
+                }
+            }
+        }
+        return validPos;
     }
 
     public boolean checkConstraints(MKP mkpInstance) {
@@ -111,9 +158,6 @@ public class Candidate {
         if (checkConstraints(mkpInstance)) {
             return;
         }
-        // System.out.println("before repair: ");
-        // this.printObj();
-
         double[] totalWeight = this.computeTotalWeight(mkpInstance);
 
         for (int i = mkpInstance.numItems - 1; i >= 0; i--) {
@@ -131,13 +175,35 @@ public class Candidate {
                 totalWeight = this.computeTotalWeight(mkpInstance);
             }
         }
+        mkpInstance.agent.addState(this.position);
         this.objValue = calcObjVal(mkpInstance);
+        // System.out.println("obj after repair: " + this.objValue);
         this.fitness = calcFitness(mkpInstance);
-        // System.out.println("after repair: ");
-        // this.printObj();
+    }
+
+    public void repairViaQAgent(MKP mkpInstance) {
+        if (checkConstraints(mkpInstance)) {
+            return;
+        }
+        // QLearningAgent agent = new QLearningAgent(mkpInstance);
+        // agent.qTable = HashMapToFile.readFromFile("q-agent-" +
+        // mkpInstance.instanceName);
+
+        // boolean[] repairedSolBool = mkpInstance.agent.repairSolution(this);
+        boolean[] repairedSolBool = mkpInstance.agent.getBestSolution();
+
+        for (int i = 0; i < mkpInstance.numItems; i++) {
+            this.position[i] = repairedSolBool[i] ? 1.00 : 0.00;
+        }
+        this.objValue = calcObjVal(mkpInstance);
+        // System.out.println("obj after repair: " + this.objValue);
+        this.fitness = calcFitness(mkpInstance);
     }
 
     public void localSearch(MKP mkpInstance) {
+        if (!checkConstraints(mkpInstance)) {
+            return;
+        }
         // System.out.println("Before local search: ");
         // this.printObj();
 
@@ -218,6 +284,57 @@ public class Candidate {
     }
 
     /* --------------------------------------------------------------------- */
+
+    public static boolean[] creValidPosBool(MKP mkpInstance) {
+        boolean[] validPos = new boolean[mkpInstance.numItems];
+
+        for (int i = 0; i < mkpInstance.numItems; i++) {
+            if (Math.random() > 0.5) {
+                validPos[i] = true;
+                if (!checkConstraints(validPos, mkpInstance)) {
+                    validPos[i] = false;
+                }
+            }
+        }
+        return validPos;
+    }
+
+    public static boolean[] doubleToBoolPositon(double[] doublePos) {
+        int numItems = doublePos.length;
+        boolean[] boolPos = new boolean[numItems];
+        for (int i = 0; i < numItems; i++) {
+            boolPos[i] = doublePos[i] == 1.00 ? true : false;
+        }
+        return boolPos;
+    }
+
+    public static double[] boolToDoublePositon(boolean[] boolPos) {
+        int numItems = boolPos.length;
+        double[] doublePos = new double[numItems];
+        for (int i = 0; i < numItems; i++) {
+            doublePos[i] = boolPos[i] ? 1.00 : 0.00;
+        }
+        return doublePos;
+    }
+
+    public static boolean checkConstraints(boolean[] pos, MKP mkpInstance) {
+        int[] totalWeights = new int[mkpInstance.numConstraints];
+        for (int i = 0; i < mkpInstance.numConstraints; i++) {
+            int weightedSum = 0;
+            for (int j = 0; j < mkpInstance.numItems; j++) {
+                weightedSum += mkpInstance.weights[i][j] * (pos[j] ? 1 : 0);
+            }
+            totalWeights[i] = (int) weightedSum;
+        }
+        for (int j = 0; j < mkpInstance.numConstraints; j++) {
+            if (totalWeights[j] > mkpInstance.capacities[j]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /* --------------------------------------------------------------------- */
     private double[] computeTotalWeight(MKP mkpInstance) {
         double[] totalWeight = new double[mkpInstance.numConstraints];
         for (int i = 0; i < mkpInstance.numItems; i++) {
@@ -248,7 +365,7 @@ public class Candidate {
         return true;
     }
 
-    private boolean canFitItem(int item, int[] remainingCapac, int[][] weights) {
+    private static boolean canFitItem(int item, int[] remainingCapac, int[][] weights) {
         for (int i = 0; i < remainingCapac.length; i++) {
             if (remainingCapac[i] - weights[i][item] < 0) {
                 return false;
@@ -257,4 +374,18 @@ public class Candidate {
         return true;
     }
 
+    public static void main(String[] args) {
+        MKP mkpInstance = new MKP("OR5x100-0.25_1");
+        // boolean[] validPos = creEffPosBool(mkpInstance, 2);
+        // System.out.println(Arrays.toString(validPos));
+        boolean[] pos = new boolean[] { false, true, false, true, true, false, true, false, true, false, false, false,
+                false, false, false, true, false, false, true, false, false, false, false, true, false, false, true,
+                false, true, true, false, true, false, false, true, false, false, false, false, false, false, false,
+                false, true, false, false, false, false, false, true, false, false, false, false, false, false, true,
+                false, false, false, false, false, true, false, false, true, false, false, true, false, false, false,
+                false, true, false, false, true, false, true, false, false, false, false, false, false, true, false,
+                false, false, false, false, false, true, false, false, false, false, false, true, false };
+
+        System.out.println(checkConstraints(pos, mkpInstance));
+    }
 }
