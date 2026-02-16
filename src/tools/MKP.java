@@ -25,7 +25,11 @@ public class MKP {
     public List<Pairs> SortedItems;
     public List<Pairs> EffList;
 
-    // Constructor, receives a filepath to the data and create all mkp details
+    /**
+     * Constructor, receives a filepath to the data and creates all mkp information
+     * 
+     * @param filepath
+     */
     public MKP(String filepath) {
         try {
             // String miniName = instanceName.split("-")[0];
@@ -55,6 +59,13 @@ public class MKP {
         System.out.println(Arrays.toString(this.capacities));
     }
 
+    /**
+     * Receives a filepath to the dataset and returns all of its information
+     * 
+     * @param filepath
+     * @return
+     * @throws IOException
+     */
     public static Object[] readMKPData(String filepath) throws IOException {
         // Read the file
         BufferedReader reader = new BufferedReader(new FileReader(filepath));

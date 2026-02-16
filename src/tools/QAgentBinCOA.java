@@ -6,8 +6,6 @@ package tools;
 
 import java.util.*;
 
-import tools.QAgentGGA.StepResult;
-
 public class QAgentBinCOA {
 
     static final int EPISODES = 10;
@@ -153,7 +151,6 @@ public class QAgentBinCOA {
             double[] nextQ = qTable.get(nextKey);
             currentQ[step] += ALPHA * (r + GAMMA * max(nextQ) - currentQ[step]);
 
-            // StepResult result = step(step, solution);
             // double[] nextState = result.newState;
             // double reward = result.reward;
 

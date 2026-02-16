@@ -3,22 +3,23 @@
  */
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import tools.*;
 import tools.ResultBatch.ResultRow;
 import tools.ResultBatchSac.ResultRowSac;
-import tools.TrainingData.DataRow;
 
 public class BinCoa {
-
     public static final int nPop = 600;
     public static final int nIter = 20;
     public static final double xorProb = (double) 1;
     public static final int effBias = 2;
     public static final int ub = 1;
     public static final int lb = -1;
+    /*
+     * Change this according to the dataset, refer to "chubeas-optimas.txt" to find
+     * the corresponding optimal solution for each dataset
+     */
     public static final int optimum = 24381;
     public static final int nReps = 30;
 
@@ -189,7 +190,7 @@ public class BinCoa {
      */
     public static Candidate binCoaAlg(MKP mkpInstance, int nPop, int nIter, double xorProb, int effBias, int ub,
             int lb) {
-        // Initiate the population
+        // Initialize the population
         Candidate[] pop = new Candidate[nPop];
         for (int i = 0; i < nPop; i++) {
             pop[i] = new Candidate(mkpInstance, effBias);
@@ -264,6 +265,10 @@ public class BinCoa {
         // binCoaScriptChuBeas();
         // binCoaScriptChuBeas5x100();
         // binCoaScriptSac();
+
+        /*
+         * This is where the dataset is selected for execution
+         */
         MKP mkpInstance = new MKP("..\\All-MKP-Instances\\chubeas\\OR5x100\\OR5x100-0.25_1.dat");
         QAgentBinCOA agent = new QAgentBinCOA(mkpInstance);
         mkpInstance.agent = agent;
