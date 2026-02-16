@@ -148,23 +148,23 @@ public class GGA {
 
     public static List<Integer> localSearchMethod(MKP mkp, List<Pairs> x1, Candidate candidate, qAgent agent, int gen) {
         candidate.calcPosition();
-        //System.out.println("before agent"+candidate.objValue);
+        // System.out.println("before agent"+candidate.objValue);
         List<Integer> chromosome = candidate.chromosome;
-        // if (gen > 150) {
+        // if (gen > 130) {
+        // List<Integer> chromosome2 = agent.qLearningLocalSearch(candidate, x1);
+        // Candidate can = new Candidate(mkp, chromosome2);
+        // // System.out.println("after agent"+can.objValue);
 
+        // if (can.objValue > candidate.objValue) {
+        // chromosome = chromosome2;
+        // }
         // candidate.setChromosome(chromosome, mkp);
         // } else if (!agent.Q.containsKey(Arrays.toString(candidate.position))) {
 
         // agent.train(mkp, candidate, x1, 0.1, 0.9, 0.2, 30);
         // }
-         chromosome = agent.qLearningLocalSearch(candidate, x1);
-         
-         //Candidate can = new Candidate(mkp, chromosome2);
-         //System.out.println("after agent"+can.objValue);
 
-        // if (can.objValue > candidate.objValue) {
-        //     chromosome = chromosome2;
-        // }
+         
         double fitness = candidate.fitness;
         double objVal = candidate.objValue;
         Candidate clone = new Candidate(mkp, chromosome);
@@ -206,7 +206,7 @@ public class GGA {
 
         // candidate.setPosition(clone.position, mkp);
         clone.calcPosition();
-        //System.out.println("final"+clone.objValue);
+        // System.out.println("final"+clone.objValue);
         return clone.chromosome;
 
     }
@@ -319,10 +319,10 @@ public class GGA {
         // evaluate the best chromosomes
         int bestCandIdx = TopIdx.topIdx(populationObjVal(population, mkp), 1)[0];
         qAgent agent = new qAgent();
-        population[bestCandIdx].calcPosition();
-        final Candidate bestCandidateForTraining = population[bestCandIdx];
-        agent.train(mkp, bestCandidateForTraining, GuideParts.get(0), 0.1, 0.9, 0.2,
-                2000);
+        // population[bestCandIdx].calcPosition();
+        // final Candidate bestCandidateForTraining = population[bestCandIdx];
+        // agent.train(mkp, bestCandidateForTraining, GuideParts.get(0), 0.1, 0.9, 0.2,
+        //         2000);
 
         double bestScore = population[bestCandIdx].calcObjValCromosome(mkp.profits);
         Candidate besCandidate = new Candidate(mkp, population[bestCandIdx].chromosome);
@@ -353,7 +353,7 @@ public class GGA {
 
             r_mut = pm;
             if (gen < 190) {
-                int[] elites = TopIdx.topIdx(populationFitness(population, mkp), 50);
+                int[] elites = TopIdx.topIdx(populationFitness(population, mkp), 25);
                 for (int i = 0; i < elites.length; i++) {
                     population[elites[i]]
                             .setChromosome(localSearchMethod(mkp, GuideParts.get(0), population[elites[i]], agent, gen),
@@ -437,6 +437,71 @@ public class GGA {
             }
         }
         GGALocalSearchResultsBatch.saveAllResults(allResults, "gga_local_search_results.csv");
+    }
+
+  public static void qScriptSac() {
+        String[] datasetName = { "sento", "hp", "pb", "weing" };
+        int[] datasetNumFiles = { 2, 2, 7, 8 };
+        List<RRow> allResults = new ArrayList<>();
+        int n = 0;
+        int nReps=30;
+        for (String dataset : datasetName) {
+            for (int i = 1; i <= datasetNumFiles[n]; i++) {
+                if ("pb".equals(dataset) && i == 3)
+                    continue;
+                if ("pet".equals(dataset) && i == 1)
+                    continue;
+                String filepath;
+                if (dataset == "weish") {
+                    String result = String.format("%02d", i);
+                    filepath = "C:\\Users\\USER\\Desktop\\my_projects\\optimization_with_java\\All-MKP-Instances\\sac94\\"
+                            + dataset + "\\" + dataset + result + ".dat";
+                } else {
+                    filepath = "C:\\Users\\USER\\Desktop\\my_projects\\optimization_with_java\\All-MKP-Instances\\sac94\\"
+                            + dataset + "\\" + dataset + i + ".dat";
+                }
+                MKP mkp = new MKP(filepath);
+
+                int opt = mkp.optimum;
+                int numSucc = 0;
+                double[] objValues = new double[30];
+                List<Double> scores = new ArrayList<>();
+                List<Double> times = new ArrayList<>();
+                System.out.println("running : " + filepath);
+                System.out.println("optimum : " + opt);
+                for (int ite = 0; ite < nReps; ite++) {
+                    long t1 = System.nanoTime();
+                    Candidate can = executeGGA(mkp, 0.9, 200, 500, 0.7, 0.2, 0.4);
+                    objValues[ite] = can.objValue;
+                    if (can.objValue == opt)
+                        numSucc++;
+                    double exec = (System.nanoTime() - t1) / 1000000000.0;
+                    times.add(exec);
+                    scores.add(can.calcObjValCromosome(mkp.profits));
+
+                }
+                double mean = scores.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+                double std = 0.0;
+                for (int j = 0; j < nReps; j++) {
+                    std += Math.pow(objValues[j] - mean, 2);
+                }
+                std = Math.sqrt(std / nReps);
+                double averageTime = times.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+                double averageScore = scores.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+                double bestScore = scores.stream().mapToDouble(Double::doubleValue).max().orElse(0.0);
+                double worstScore = scores.stream().mapToDouble(Double::doubleValue).min().orElse(0.0);
+                allResults.add(new RRow(dataset + i,
+                        numSucc / (double) nReps, std));
+                System.out.printf("Average D.F.O: %.4f%%\n", ((opt - averageScore) / opt) * 100);
+                System.out.printf("Best D.F.O: %.4f%%\n", ((opt - bestScore) / opt) * 100);
+                System.out.printf("Worst D.F.O: %.4f%%\n", ((opt - worstScore) / opt) * 100);
+                System.out.printf("Average Execution Time: %.2f seconds\n", averageTime);
+                System.out.printf("Success rate: %.2f\n", (numSucc / (double) nReps));
+                System.out.printf("std: %.2f\n", std);
+            }
+            n++;
+        }
+        ResultBatchSac.saveAllResults(allResults, "Q-learning_results_sac94.csv");
     }
 
     public static void trainingData() {
@@ -562,19 +627,19 @@ public class GGA {
 
     public static void main(String[] args) {
 
-        MKP mkp = new MKP(
-                "C:\\Users\\USER\\Desktop\\my_projects\\optimization_with_java\\All-MKP-Instances\\chubeas\\OR5x100\\OR5x100-0.25_1.dat");
-        for (int ite = 0; ite < 1; ite++) {
-            long t1 = System.nanoTime();
-            Candidate can = executeGGA(mkp, 0.9, 350, 500, 0.7, 0.2, 0.7);
-            double exec = (System.nanoTime() - t1) / 1000000000.0;
-            System.out.println((24381 - can.objValue) / 24381.0 * 100);
-            System.out.println(exec + " s");
-            System.out.println(can.checkConstraintsChromosome(mkp));
-            can.calcPosition();
-            System.out.println(Arrays.toString(can.position));
-            double opt = 154662.0;
-        }
+        // MKP mkp = new MKP(
+        //         "C:\\Users\\USER\\Desktop\\my_projects\\optimization_with_java\\All-MKP-Instances\\chubeas\\OR5x100\\OR5x100-0.25_1.dat");
+        // for (int ite = 0; ite < 30; ite++) {
+        //     long t1 = System.nanoTime();
+        //     Candidate can = executeGGA(mkp, 0.9, 200, 500, 0.7, 0.20, 0.4);
+        //     double exec = (System.nanoTime() - t1) / 1000000000.0;
+        //     System.out.println((24381 - can.objValue) / 24381.0 * 100);
+        //     System.out.println(exec + " s");
+        //     System.out.println(can.checkConstraintsChromosome(mkp));
+        //     can.calcPosition();
+        //     System.out.println(Arrays.toString(can.position));
+        //     double opt = 154662.0;
+        // }
         // GGAscript();
         // double ir = Double.parseDouble(args[0]);
         // int ng = Integer.parseInt(args[1]);
@@ -584,5 +649,46 @@ public class GGA {
         // double nmp = Double.parseDouble(args[5]);
         // tryData(args);
         // trainingData();
+       // qScriptSac();
+       int nReps=30;
+       MKP mkp = new MKP(
+                "C:\\Users\\USER\\Desktop\\my_projects\\optimization_with_java\\All-MKP-Instances\\chubeas\\OR5x100\\OR5x100-0.25_1.dat");
+        double optimum = 24381;
+        double totalExecTime = (double) 0;
+        double totalPercentage = (double) 0;
+        double totalDFO = (double) 0;
+        double worstDFO = (double) 0;
+        double bestDFO = (double) 100000;
+        for (int i = 0; i < nReps; i++) {
+            long startTime = System.currentTimeMillis();
+
+            Candidate bestSol = executeGGA(mkp, 0.9, 200, 500, 0.7, 0.2, 0.4);
+            double percentage = bestSol.objValue * 100 / optimum;
+            double dfo = 100 - percentage;
+            if (dfo < bestDFO)
+                bestDFO = dfo;
+            if (dfo > worstDFO)
+                worstDFO = dfo;
+            totalDFO += dfo;
+            totalPercentage += percentage;
+
+            System.out.printf(
+                    "%d: Candidate objective value: %.1f Percentage: %.2f%% DFO: %.2f%%%n",
+                    i + 1, bestSol.objValue, percentage, dfo);
+            // System.out.println("Candidate position: " +
+            // Arrays.toString(bestSol.position));
+            long endTime = System.currentTimeMillis();
+            long execTime = endTime - startTime;
+            totalExecTime += execTime;
+            System.out.println("Execution time: " + execTime / 1000.0 + " seconds");
+        }
+        // System.out.printf("Average percentage: %.2f%%%n", totalPercentage /
+        // numReps);
+        System.out.printf("Number of repetitions: %d%n", nReps);
+        System.out.printf("Average execution time: %.2fs%n", (totalExecTime / 1000.0)
+                / nReps);
+        System.out.printf("Average DFO: %.2f%%%n", totalDFO / nReps);
+        System.out.printf("Worst DFO: %.2f%%%n", worstDFO);
+        System.out.printf("Best DFO: %.2f%%%n", bestDFO);
     }
 }

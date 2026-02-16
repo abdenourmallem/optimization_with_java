@@ -1,0 +1,77 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "TopIdx",
+            "request": "launch",
+            "mainClass": "tools.TopIdx",
+            "projectName": "optimization_with_java_ed5a4a23"
+        },
+        {
+            "type": "java",
+            "name": "qAgent",
+            "request": "launch",
+            "mainClass": "tools.qAgent",
+            "projectName": "optimization_with_java_ed5a4a23"
+        },
+        {
+            "type": "java",
+            "name": "saveQtable",
+            "request": "launch",
+            "mainClass": "tools.saveQtable",
+            "projectName": "optimization_with_java_ed5a4a23"
+        },
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "BinCoa",
+            "request": "launch",
+            "mainClass": "BinCoa",
+            "projectName": "optimization_with_java_ed5a4a23"
+        },
+        {
+            "type": "java",
+            "name": "GGA",
+            "request": "launch",
+            "mainClass": "GGA.GGA",
+            "projectName": "optimization_with_java_ed5a4a23"
+        },
+        {
+            "type": "java",
+            "name": "EffFuncs",
+            "request": "launch",
+            "mainClass": "tools.EffFuncs",
+            "projectName": "optimization_with_java_ed5a4a23"
+        },
+        {
+            "type": "java",
+            "name": "GGALocalSearchResultsBatch",
+            "request": "launch",
+            "mainClass": "tools.GGALocalSearchResultsBatch",
+            "projectName": "optimization_with_java_ed5a4a23"
+        },
+        {
+            "type": "java",
+            "name": "MKP",
+            "request": "launch",
+            "mainClass": "tools.MKP",
+            "projectName": "optimization_with_java_ed5a4a23"
+        },
+        {
+            "type": "java",
+            "name": "fitness_functions",
+            "request": "launch",
+            "mainClass": "tools.fitness_functions",
+            "projectName": "optimization_with_java_ed5a4a23"
+        }
+    ]
+}

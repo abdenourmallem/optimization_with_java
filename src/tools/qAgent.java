@@ -58,7 +58,7 @@ public class qAgent {
         return 1.0 / (1.0 + Math.exp(-0.5 * x));
     }
 
-    public static void clearQ() {
+    public void clearQ() {
         Q.clear();
     }
 
@@ -75,12 +75,11 @@ public class qAgent {
 
         double reward;
         if (!done) {
-            reward = -10.0;
+            reward = -1.0;
         } else {
             reward = sShapeTransferFuncV2(newState.fitness - oldFitness);
             // System.out.println("Old fitness: " + oldFitness);
             // System.out.println("New fitness: " + newState.fitness);
-            // System.out.println("Reward: " + reward);
             // System.out.printf("n-old=%f", newState.fitness - oldFitness);
         }
         // System.out.println(reward);
@@ -95,7 +94,9 @@ public class qAgent {
         double oldObjValue = state.objValue;
         int nActions = env.numItems;
 
-        int startIdx = x1.size();
+        int startIdx = 0;
+        if (Math.random() < (1 - (env.numItems / 1000) * 1.8))
+            startIdx = x1.size();
         List<String> keylist = new ArrayList<>();
         for (int ep = 0; ep < eps; ep++) {
             String stateKey = Arrays.toString(state.position.clone());
@@ -159,15 +160,15 @@ public class qAgent {
         // .map(Map.Entry::getKey)
         // .distinct()
         // .count());
-        // saveQtable.saveToFile(Q, "qtable.csv");
+        //saveQtable.saveToFile(Q, "qtable.csv");
         // return Q;
     }
 
     public void trainV2(MKP env, Candidate candidate, List<Pairs> x1, double alpha, double gamma,
-            double epsilon) {
+            double epsilon,int eps) {
         candidate.calcPosition();
         Candidate state = new Candidate(env, candidate.position.clone());
-        for (int ep = 0; ep < 100; ep++) {
+        for (int ep = 0; ep < eps; ep++) {
             String stateKey = Arrays.toString(state.position.clone());
             Q.putIfAbsent(stateKey, new HashMap<>());
             Map<Action, Double> qValues = Q.get(stateKey);
@@ -250,13 +251,15 @@ public class qAgent {
 
         Candidate state = new Candidate(solution.mkpInstance, solution.chromosome);
         state.calcPosition();
-        int startIdx = x1.size();
+        int startIdx = 0;
+        if (Math.random() < (1 - (solution.mkpInstance.numItems / 1000) * 1.8))
+            startIdx = x1.size();
         for (int iter = startIdx; iter < state.size; iter++) {
             int item = state.mkpInstance.SortedItems.get(iter).getId();
             String stateKey = Arrays.toString(state.position);
             if (!Q.containsKey(stateKey)) {
                 // System.out.println("break");
-                if (Math.random() < 0.2)
+                if (Math.random() < 0.1)
                     this.train(state.mkpInstance, state, x1, 0.1, 0.9, 0.1, 35);
                 else
                     return solution.chromosome; // If no Q-values for this state, return current solution

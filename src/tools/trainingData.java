@@ -34,7 +34,8 @@ public class trainingData {
 
     public static void saveTrainingData(List<DataRow> results, String filename) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
-            // Write the header oncewriter.write("Instance,IR,NG,PS,PC,PM,NMP,Time,Accuracy\n");
+            // Write the header
+            // oncewriter.write("Instance,IR,NG,PS,PC,PM,NMP,Time,Accuracy\n");
             writer.write("Instance,IR,NG,PS,PC,PM,NMP,Time,Accuracy\n");
             for (DataRow row : results) {
                 writer.write(row.instanceName + "," +
